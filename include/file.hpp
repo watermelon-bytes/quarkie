@@ -130,7 +130,7 @@ protected:
     range find_continuous_space(const unsigned int sectors) const;
 
     // #auxilary
-    inline unsigned int blocks_needed_for(size_t bytes_count) {
+    inline unsigned int blocks_needed_for(size_t bytes_count) const {
         return div_and_ceil(bytes_count, block_size);
     }
 

@@ -2,7 +2,6 @@
 #define FILE_H
 
 #include <cstddef>
-#include <cstdint>
 
 #define DEBUG
 #include "bitmap.hpp"
@@ -132,7 +131,7 @@ protected:
 
     // #auxilary
     inline unsigned int blocks_needed_for(size_t bytes_count) {
-        return bytes_count / block_size + (bytes_count % block_size ? 1 : 0);
+        return div_and_ceil(bytes_count, block_size);
     }
 
 public:

@@ -3,7 +3,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <iterator>
 
 #define DEBUG
 #include "bitmap.hpp"

@@ -1,0 +1,6 @@
+Language: Cpp
+BasedOnStyle: google
+IndentWidth: 4
+AccessModifierOffset: -4
+PointerAlignment: Left 
+AlignTrailingComments: true

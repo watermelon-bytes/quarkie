@@ -1,12 +1,11 @@
 #include "../include/bitmap.hpp"
 
 #include "../src/bitmap.cpp"
-
 struct a {
     long x;
 };
 
-cheesy::bitmap<a, 10> map;
+cheesy::bitmap<a, 100> map;
 
 void test_fill_byte() {
     map.dump(0);
@@ -17,10 +16,12 @@ void test_fill_byte() {
 }
 
 int main() {
-    for (int i = 0; i < 4; i++) {
-        test_fill_byte();
-    }
+    cout << "Size of map: " << sizeof(map) << endl;
+    map.dump();
     auto x = map.give_slot();
+    x->x = 5;
+    x->x = 8;
+    cout << "x = " << x->x << endl;
     map.dump();
 
     auto y = map.give_slot();
@@ -43,5 +44,8 @@ int main() {
     map.dump();
     cout << "calling give_slot()" << endl;
     z = map.give_slot();
+    map.dump();
+    cout << "Resetting map." << endl;
+    map.reset();
     map.dump();
 }

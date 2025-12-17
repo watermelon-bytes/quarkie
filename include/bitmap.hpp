@@ -31,11 +31,19 @@ inline constexpr static ulong div_and_ceil(ulong a, ulong b) {
 
 template <typename t, unsigned int slots_count>
 class bitmap {
+    inline static int borrowed_slots_counter = 0;
+
     constexpr static ulong bitmap_size = div_and_ceil(slots_count, 8);
     byte bits[bitmap_size]{0};
 
     t base[slots_count];
-    inline static int borrowed_slots_counter = 0;
+
+    struct {
+        short position : 13;
+        short offset : 3;
+    } last_freed_bit{0, 0};
+    /* ^^^^^^^ to save information about what was freed last time to speed up
+     * allocating*/
 
 public:
 #ifndef DEBUG

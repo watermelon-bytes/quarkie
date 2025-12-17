@@ -43,13 +43,18 @@ exit_code node::add_child(node* son) {
 
 exit_code mark_free(const range);
 
-exit_code node::cleanup() {
+exit_code node::cleanup_file_space() {
     if (attributes.directory) return exit_code::not_a_file;
-    for (range& r : data.metadata.sectors) {
+
+    for (range& r : data.descriptors) {
         mark_free(r);
         r.len = 0;
     }
     return exit_code::success;
+}
+
+exit_code cheesy::create_file(const char* path) {
+    // 1. Find the directory.
 }
 
 exit_code node::remove_child(int id) {
@@ -73,8 +78,9 @@ exit_code node::remove_child(int id) {
 // node* superblock::get_node_by_path(const char*) {}
 
 exit_code make_readonly(const char* path) {
-    node* target = superblock::get_node_by_path(path);
-    target->attributes.readonly = 1;
+    node* target = main.get_node_by_path(path);
+    target->set_readonly(1);
+
     return exit_code::success;
 }
 

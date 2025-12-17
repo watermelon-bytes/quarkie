@@ -49,8 +49,8 @@ exit_code set_name(const char* path, const char* new_name);
 class node {
 protected:
     struct {
-        uint8_t directory : 1;  // folder or not
-        uint8_t readonly : 1;   /* write access */
+        uint8_t directory : 1; /* folder or not */
+        uint8_t readonly : 1;  /* write access */
 
         uint8_t : 0;  // reserved
     } attributes;
@@ -74,12 +74,11 @@ protected:
 
         range descriptors[4]; /* For a File: descriptors of the space where the
                                * bits of the file are stored. */
-
-        sector_no
-            more_descriptors; /* The sector that contains just ranges. If set to
-                                0, then all metadata is contained in this
-          sector. If sectors descriptors dont fit in 'metadata.sectors' (means
-          that reading from 'metadata.more_sectors' is needed)  */
+        sector_no more_descriptors;
+        /* The sector that contains just ranges (extended for a File). If set to
+          0, then all metadata is contained in this sector. If sectors
+          descriptors dont fit in 'metadata.sectors' (means that reading from
+          'metadata.more_sectors' is needed)  */
     } data;
 
     // inline bool is_directory() const { return flags.directory; }
@@ -97,6 +96,7 @@ public:
 
     exit_code cleanup_file_space();  // #auxilary for: remove_child
 
+    void set_readonly(bool);  // #auxilary for: make_readonly
     explicit node(node* parent, bool directory = false);
 };
 

@@ -3,8 +3,9 @@
 
 #include <cstddef>
 
+#include "bitmap/bitmap.hpp"
+
 #define DEBUG
-#include "bitmap.hpp"
 namespace cheesy {
 
 enum class exit_code : int8_t {
@@ -23,7 +24,7 @@ using sector_no = uint32_t; /* alias for readability and typenames splitting */
 
 struct range {
     sector_no begin;
-    unsigned int len;  // How many sectors ahead belongs to this (logical) piece
+    unsigned int len; /*How many sectors ahead belongs to this (logical) piece*/
 };
 
 constexpr range nulldescriptor = {0, 0};

@@ -45,14 +45,14 @@ t* cheesy::bitmap<t, blocks_count>::give_slot() {
 
         bits[index] |= (1 << last_freed_bit.offset);
 
-        return static_cast<t*>(&base[index + last_freed_bit.offset]);
+        return static_cast<t*>(&base[8 * index + last_freed_bit.offset]);
         /* don't know whether it's possible to change `last_freed_bit.position`
          * right when returning */
     }
 
     for (unsigned i = 0; i < blocks_count; ++i) {
         // fast check
-        if (~(bits[i]) == 0) {
+        if (~(bits[i])) {
             continue;
         }
 

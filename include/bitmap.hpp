@@ -31,7 +31,7 @@ inline constexpr static ulong div_and_ceil(ulong a, ulong b) {
 
 template <typename t, unsigned int slots_count>
 class bitmap {
-    inline static int borrowed_slots_counter = 0;
+    unsigned int borrowed_slots_counter = 0;
 
     constexpr static ulong bitmap_size = div_and_ceil(slots_count, 8);
     byte bits[bitmap_size]{0};
@@ -56,6 +56,8 @@ public:
              << " blocks; each block = " << sizeof(t) << " bytes." << endl;
     };
 #endif
+
+    unsigned int get_borrowed_count() const { return borrowed_slots_counter; }
 
     [[nodiscard("The allocated slot must be stored and freed after using.")]] t*
     give_slot();

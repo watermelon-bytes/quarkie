@@ -10,11 +10,7 @@ set(SOURCES
     ./src/paths.cpp
 )
 
-add_library(bitmap
-    ${SOURCES}
-)
-
-target_include_directories(include)
+target_include_directories(bitmap PRIVATE ./include/bitmap/)
 
 add_compile_options(
     -ffreestanding -fno-stack-protector -fno-exceptions -fno-rtti

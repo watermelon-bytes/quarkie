@@ -2,15 +2,21 @@
 #define PARSER_HPP
 // #include "file.hpp"
 
+// #auxilary
 namespace string_utils {
 
 struct word {
-    char* c;
+    const char* c;
     unsigned short size;
 };
 
-word take_word(const char* path, const char separator);
+extern char separator;
+
+word take_word(const char* path);
+
+word take_filename(const char* path);
+word take_directory(const char* path);
 
 }  // namespace string_utils
 
-#endif  // !PARSER_HPP
+#endif

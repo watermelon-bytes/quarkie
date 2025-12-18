@@ -2,6 +2,7 @@
 #define FILE_H
 
 #include <cstddef>
+#include <cstdint>
 
 #include "bitmap/bitmap.hpp"
 
@@ -53,6 +54,12 @@ protected:
         uint8_t directory : 1; /* folder or not */
         uint8_t readonly : 1;  /* write access */
 
+        uint8_t more_sectors : 1;
+        /* ^^^^^^^^^^
+         * If set to 0, then all metadata is contained in `data.descriptors`. If
+         * sectors descriptors dont fit in 'data.descriptors' it means that
+         * reading from 'data.more_sectors' is needed */
+
         uint8_t : 0;  // reserved
     } attributes;
 
@@ -76,10 +83,7 @@ protected:
         range descriptors[4]; /* For a File: descriptors of the space where the
                                * bits of the file are stored. */
         sector_no more_descriptors;
-        /* The sector that contains just ranges (extended for a File). If set to
-          0, then all metadata is contained in this sector. If sectors
-          descriptors dont fit in 'metadata.sectors' (means that reading from
-          'metadata.more_sectors' is needed)  */
+        /* The sector that contains just ranges (extended for a File).   */
     } data;
 
     // inline bool is_directory() const { return flags.directory; }
@@ -118,7 +122,6 @@ protected:
 
     node root = node(&root, true);
 
-    range nodes_location;
     bitmap<node, nodes_limit> node_allocator;
     /*  TODO: allocate space to manage it via this bitmap */
 
@@ -136,25 +139,21 @@ protected:
     }
 
 public:
-    explicit superblock(const sector_no given_space,
-                        void (*read_disk_api)(sector_no, size_t, char*),
-                        void (*write_disk_api)(const char*, sector_no, size_t),
-                        void* (*malloc_api)(const size_t),
-                        void (*free_api)(void*)) {
+    explicit superblock(
+        const sector_no given_space,
+        void (*read_disk_api)(sector_no, size_t, char*),
+        void (*write_disk_api)(
+            const char*, sector_no,
+            size_t))  // Low-level API should be provided by the host
+    {
         void_descriptor.data[void_descriptor.size++] = {
             .begin = blocks_needed_for(sizeof(superblock)),
             .len = given_space - blocks_needed_for(sizeof(superblock))};
 
         read_blocks = read_disk_api;
         write_blocks = write_disk_api; /* Register low-level storage read-write
-                                        API functions. */
+                                        API drivers functions. */
         total_blocks = given_space;
-
-        nodes_location =
-            find_continuous_space(blocks_needed_for(sizeof(node) * 100));
-
-        // node_allocator = bitmap<node,
-        // 100>((node*)read_blocks(nodes_location.begin, nodes_location.len));
 
         /* TODO: find space on disk for `node`s, borrow it and insert instead of
          * `nullptr`*/

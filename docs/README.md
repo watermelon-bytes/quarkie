@@ -5,4 +5,6 @@ Also, details of the API implementation explained.
 
 ## Documents overview
 
+- `filesystem-common-description.md`. The main principles used by the filesystem.
+
 

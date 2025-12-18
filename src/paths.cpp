@@ -3,9 +3,15 @@
 #include "../include/parser.hpp"
 
 using string_utils::word;
-word take_word(char* str) {
+
+#ifndef MEMCMP
+
+#endif
+namespace string_utils {
+
+word take_word(const char* str) {
     word output;
-    while (*str == '/' || *str == ' ') {
+    while (*str == separator || *str == ' ') {
         if (*str == '\0') {
             return {nullptr, 0};
         }
@@ -20,24 +26,22 @@ word take_word(char* str) {
     return output;
 }
 
-}  // namespace string_utils
+};  // namespace string_utils
 
-int take_word();
 using cheesy::node;
 cheesy::node* find_file(const char* path) {
-    word target = take_word(path);
+    word target = string_utils::take_word(path);
 
-    for (node* curr_node = superblock.root->eldest_child; curr_node != nullptr;
-         curr_node = curr_node->next) {
+    for (node* curr_node = cheesy::main.root->eldest_child;
+         curr_node != nullptr; curr_node = curr_node->next) {
         if (memcmp(curr_node->name, target, target.size) == 0)
+
         /* As long as target.size <= strlen(path), memcmp should be safe */
         {
             target = string_utils::take_word(path + target.size);
             if (target.size != 0) {
                 return curr_node;
             }
-
-            curr_node = curr_node->name;
         }
     }
 

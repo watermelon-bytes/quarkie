@@ -100,7 +100,7 @@ void test_different_types_and_sizes() {
 
     bitmap<char, 8> bm_char;
     bitmap<int, 100> bm_int;
-    bitmap<void*, 17> bm_ptr;
+    bitmap<void*, 23> bm_ptr;
 
     char* c = bm_char.give_slot();
     assert(c != nullptr);

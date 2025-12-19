@@ -1,6 +1,8 @@
 #ifndef FILE_H
 #define FILE_H
 
+#include <uchar.h>
+
 #include <cstddef>
 #include <cstdint>
 
@@ -64,7 +66,10 @@ protected:
     } attributes;
 
     int32_t identificator;  // for faster searching
-    char name[32];          // 32 should be enough for simplicity
+
+    constexpr static uint max_name_len = 32;
+    /* 32 should be enough for simplicity */
+    char8_t name[max_name_len];
 
     // directory-parent
     node* mother;  // (for "/" it equals to `this`)

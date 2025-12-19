@@ -22,14 +22,6 @@ namespace cheesy {
 
 using byte = unsigned char;
 
-// constexpr inline bool is_aligned(const int x) { return x % 8; }
-
-// static byte bitmaps_state[];
-// Page layout
-// ---------------------------------------------------------------
-// [ bitmap {16 bytes} |  |  |  |  | .... * blocks, 4080 bytes * ]
-// ---------------------------------------------------------------
-
 inline constexpr static ulong div_and_ceil(ulong a, ulong b) {
     return a / b + (a % b ? 1 : 0);
 }

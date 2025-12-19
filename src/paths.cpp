@@ -26,8 +26,6 @@ word take_word(const char* str) {
     return output;
 }
 
-};  // namespace string_utils
-
 using cheesy::node;
 cheesy::node* find_file(const char* path) {
     word target = string_utils::take_word(path);
@@ -47,5 +45,7 @@ cheesy::node* find_file(const char* path) {
 
     return nullptr;
 }
+
+};  // namespace string_utils
 
 #endif  // !PARSER_H

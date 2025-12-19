@@ -1,6 +1,6 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
-// #include "file.hpp"
+#include "file.hpp"
 
 // #auxilary
 namespace string_utils {
@@ -16,6 +16,8 @@ word take_word(const char* path);
 
 word take_filename(const char* path);
 word take_directory(const char* path);
+
+cheesy::node* find_file(const char* path);
 
 }  // namespace string_utils
 

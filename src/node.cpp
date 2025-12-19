@@ -2,6 +2,7 @@
 #define NODE_CPP
 
 #include "../include/file.hpp"
+#include "../include/parser.hpp"
 using namespace cheesy;
 
 node::node(node* parent_ptr, bool dir) {
@@ -81,6 +82,12 @@ exit_code make_readonly(const char* path) {
     node* target = main.get_node_by_path(path);
     target->set_readonly(1);
 
+    return exit_code::success;
+}
+
+exit_code cheesy::set_name(const char* path, const char* new_name) {
+    node* target = string_utils::find_file(path);
+    strcpy(new_name, &(target->name));
     return exit_code::success;
 }
 

@@ -15,9 +15,10 @@ set(QUARKIE_SOURCES
 )
 
 add_library(quarkie_api STATIC ${QUARKIE_SOURCES})
-target_include_directories(quarkie_api  [AFTER|BEFORE]
-   <INTERFACE|PUBLIC|PRI...> [items1...]
-   [<INTERFACE|PUBLIC|PRI...> [items2...] ...])
+
+target_include_directories(quarkie_api PUBLIC inc/)
+
+
 add_compile_options(quarkie_api PRIVATE # do not export compile options
     -ffreestanding -fno-stack-protector -fno-exceptions -fno-rtti
     # hope this ^^^^ will setup full x86-64 freestanding

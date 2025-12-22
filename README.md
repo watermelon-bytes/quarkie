@@ -1,2 +1,4 @@
-# cheesy-fs
-🧀 The Cheesy filesystem high-level API written in C++
+# Quarkie FS  
+🔮 The Quarkie filesystem high-level portable API written in C++.
+
+See documentation [here](./docs/).

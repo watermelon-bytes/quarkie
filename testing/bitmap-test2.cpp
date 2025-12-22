@@ -2,8 +2,8 @@
 #include <iostream>
 #include <vector>
 
-#include "../include/bitmap/bitmap.hpp"
-using namespace cheesy;
+#include "../inc/bitmap/bitmap.hxx"
+using namespace quarkie;
 
 void test_bitmap_basic() {
     std::cout

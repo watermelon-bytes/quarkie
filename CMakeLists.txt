@@ -1,19 +1,26 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(cheesy VERSION 0.1 LANGUAGES CXX)
+project(QuarkieFS VERSION 0.0.1 LANGUAGES CXX)
 
 # set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_CXX_STANDARD 17)
-# set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_STANDARD_REQUIRED True) # <-- dont know whether it's necessary or not
 
-set(SOURCES
-    ./src/paths.cpp
+set(QUARKIE_SOURCES
+    src/paths.cpp
+    src/node.cxx
+    src/superblock.cpp
+    src/free_space_tracker.cpp
 )
 
-target_include_directories(bitmap PRIVATE ./include/bitmap/)
+target_include_directories(inc PUBLIC)
+add_library(quarkie_api STATIC ${QUARKIE_SOURCES})
 
-add_compile_options(
+add_compile_options(quarkie_api PRIVATE # do not export compile options
     -ffreestanding -fno-stack-protector -fno-exceptions -fno-rtti
-    -Wall -Wextra -O2 -g
+    # hope this ^^^^ will setup full x86-64 freestanding
+    #
+    -Wall -Wextra -O1 -g
     -m64 -march=x86-64 -mtls-direct-seg-refs
 )

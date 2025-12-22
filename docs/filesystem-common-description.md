@@ -1,7 +1,7 @@
-### Description of the Cheesy systems common mechanisms
+### Description of the Quarkie systems common mechanisms
 
-The Cheesy filesystem is designed to be simple and fast (see KISS). It uses trees to store directories and files descriptors called `nodes`. *Each node can describe both folder and file*.
-Since `struct node` has a fixed size, Cheesy ecosystem manages metadata space via bitmaps. Also, since we know that the space is supposed to be allocated for a single `node` only, Cheesy filesystem doesn't have to store every chunk size (i.e. we guarantee that each request to the bitmap wants a fixed well-known amount of memory). So the bitmap has to be able to define and switch 1 bit in its descriptors.
+The Quarkie filesystem is designed to be simple and fast (see KISS). It uses trees to store directories and files descriptors called `nodes`. *Each node can describe both folder and file*.
+Since `struct node` has a fixed size, Quarkie ecosystem manages metadata space via bitmaps. Also, since we know that the space is supposed to be allocated for a single `node` only, Quarkie filesystem doesn't have to store every chunk size (i.e. we guarantee that each request to the bitmap wants a fixed well-known amount of memory). So the bitmap has to be able to define and switch 1 bit in its descriptors.
 
 The information about what node belongs to (file or directory) is kept in bit 0 in the `attributes` field. Also, `attributes` contains all metadata about an object a node describes.
 

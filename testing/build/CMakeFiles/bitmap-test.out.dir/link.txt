@@ -1,0 +1,1 @@
+/usr/bin/c++ -rdynamic -Wl,--dependency-file=CMakeFiles/bitmap-test.out.dir/link.d "CMakeFiles/bitmap-test.out.dir/bitmap-test2.cpp.o" -o bitmap-test.out

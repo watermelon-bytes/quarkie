@@ -14,9 +14,10 @@ set(QUARKIE_SOURCES
     src/free_space_tracker.cpp
 )
 
-target_include_directories(inc PUBLIC)
 add_library(quarkie_api STATIC ${QUARKIE_SOURCES})
-
+target_include_directories(quarkie_api  [AFTER|BEFORE]
+   <INTERFACE|PUBLIC|PRI...> [items1...]
+   [<INTERFACE|PUBLIC|PRI...> [items2...] ...])
 add_compile_options(quarkie_api PRIVATE # do not export compile options
     -ffreestanding -fno-stack-protector -fno-exceptions -fno-rtti
     # hope this ^^^^ will setup full x86-64 freestanding

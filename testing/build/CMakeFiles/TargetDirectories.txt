@@ -1,3 +1,0 @@
-/home/patrick/cheesy-fs/testing/build/CMakeFiles/bitmap-test.out.dir
-/home/patrick/cheesy-fs/testing/build/CMakeFiles/edit_cache.dir
-/home/patrick/cheesy-fs/testing/build/CMakeFiles/rebuild_cache.dir

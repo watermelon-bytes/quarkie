@@ -69,9 +69,8 @@ exit_code node::cleanup_file_space() {
     return exit_code::success;
 }
 
-exit_code quarkie::create_file(const char* path) {
-    // 1. Find the directory.
-}
+// TODO:
+exit_code quarkie::create_file(const char* path) {}
 
 exit_code node::remove_child(int id) {
     if (attributes.directory) {

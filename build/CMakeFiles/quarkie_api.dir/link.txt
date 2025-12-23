@@ -1,0 +1,2 @@
+/usr/bin/ar qc libquarkie_api.a CMakeFiles/quarkie_api.dir/src/paths.cxx.o CMakeFiles/quarkie_api.dir/src/node.cxx.o CMakeFiles/quarkie_api.dir/src/superblock.cxx.o CMakeFiles/quarkie_api.dir/src/free_space_tracker.cxx.o
+/usr/bin/ranlib libquarkie_api.a

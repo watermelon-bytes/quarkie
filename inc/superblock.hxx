@@ -15,11 +15,12 @@ protected:
     sector_no total_blocks;
 
     node root = node(&root, true);
+    uint global_node_counter{1};  // Also used to assign identificators to nodes
 
     range free_space_start;
 
-    /* This allocator should be used to manage nodes dynamically and must be the
-     * only way nodes are created. */
+    /* NOTE: This allocator should be used to manage nodes dynamically and must
+     * be the only way how nodes are created. */
     bitmap<node, nodes_limit> node_allocator;
 
     // #auxilary

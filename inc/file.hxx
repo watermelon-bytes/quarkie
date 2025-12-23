@@ -2,14 +2,13 @@
 #define FILE_H
 #include <uchar.h>
 
+#include <common_api.hxx>
 #include <cstdint>
-
-#include "common_api.hxx"
+#include <parser.hxx>
 
 namespace quarkie {
 
 class node {
-protected:
     struct {
         uint8_t directory : 1;
         /**< Node type: either directory (set to 1) or file (clear) */
@@ -73,6 +72,7 @@ public:
     void set_readonly(bool);  // #auxilary for: make_readonly
     explicit node(node* parent, bool directory = false);
 
+    friend string_utils::word string_utils::take_word(const char*);
     friend exit_code quarkie::set_name(const char* path, const char* new_name);
 };
 

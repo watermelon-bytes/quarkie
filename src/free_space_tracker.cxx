@@ -1,6 +1,5 @@
 #ifndef SPACE_TRACKER_CPP
 #define SPACE_TRACKER_CPP
-#include <cstdlib>
 #include <free_space_tracker.hxx>
 
 namespace quarkie {

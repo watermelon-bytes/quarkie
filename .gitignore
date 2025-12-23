@@ -1,7 +1,9 @@
-.cache/*
-build/*
-testing/build/*
-
+.cache/
+build/
+testing/build/
+*.make
+*.cmake
+*.idx
 
 # Prerequisites
 *.d

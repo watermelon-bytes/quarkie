@@ -39,7 +39,14 @@ exit_code fs_init(const sector_no size,
 exit_code make_dir(const char* path);
 exit_code create_file(const char* path);
 
-exit_code open(const char* path);
+/*
+ * @brief Marks the file open
+ */
+int open(const char* path);
+
+/*
+ *
+ */
 exit_code close(int id);
 
 void fs_panic(const char* reason);

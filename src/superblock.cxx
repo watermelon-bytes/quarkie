@@ -1,10 +1,10 @@
 #ifndef SUPERBLOCK_CPP
 #define SUPERBLOCK_CPP
-#include "../include/file.hpp"
+#include <superblock.hxx>
 
-cheesy::superblock::superblock(
+quarkie::superblock::superblock(
     const sector_no given_space,  // How many sectors on disk belongs to us
-    void (*read_disk_api)(sector_no, size_t, char*),
+    char* (*read_disk_api)(const sector_no, const size_t),
     void (*write_disk_api)(const char*, sector_no, size_t))
 // Low-level API should be provided by the host
 {

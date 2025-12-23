@@ -13,7 +13,8 @@ struct word {
 extern char separator; /**< any character that will be forbidden in file names
                           but used to split paths */
 
-static word take_word(const char* path);
+// static
+word take_word(const char* path);
 
 /*
  * #auxilary

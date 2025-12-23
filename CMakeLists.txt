@@ -1,17 +1,17 @@
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 cmake_minimum_required(VERSION 3.0)
 
 project(QuarkieFS VERSION 0.0.1 LANGUAGES CXX)
 
 # set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD_REQUIRED True) # <-- dont know whether it's necessary or not
 
 set(QUARKIE_SOURCES
-    src/paths.cpp
+    src/paths.cxx
     src/node.cxx
-    src/superblock.cpp
-    src/free_space_tracker.cpp
+    src/superblock.cxx
+    src/free_space_tracker.cxx
 )
 
 add_library(quarkie_api STATIC ${QUARKIE_SOURCES})

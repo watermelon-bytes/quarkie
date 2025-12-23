@@ -1,7 +1,8 @@
 #ifndef NODE_CPP
 #define NODE_CPP
 
-#include "../inc/file.hxx"
+#include <file.hxx>
+#include <superblock.hxx>
 using namespace quarkie;
 
 node::node(node* parent_ptr, bool dir) {
@@ -42,13 +43,28 @@ exit_code node::add_child(node* son) {
 }
 
 exit_code mark_free(const range);
+exit_code mark_free(const sector_no start, const uint length);
 
 exit_code node::cleanup_file_space() {
     if (attributes.directory) return exit_code::not_a_file;
+    if (this->attributes.more_sectors) {
+        auto meta = sb.read_blocks(data.more_descriptors, 1);
+        const auto size = *(uint*)meta;
+        if (size <= 0) {
+            // TODO: handle error
+        }
+        auto* records = (range*)(reinterpret_cast<uint*>(meta) + 1);
+        for (uint i = 0; i < size; ++i) {
+            mark_free(records[i]);
+        }
 
-    for (range& r : data.descriptors) {
-        mark_free(r);
-        r.len = 0;
+        mark_free(data.more_descriptors, 1);
+
+    } else {
+        for (range& r : data.descriptors) {
+            mark_free(r);
+            r.len = 0;
+        }
     }
     return exit_code::success;
 }
@@ -86,7 +102,8 @@ exit_code make_readonly(const char* path) {
 
 exit_code quarkie::set_name(const char* path, const char* new_name) {
     node* target = string_utils::find_file(path);
-    strcpy(new_name, &(target->name));
+    __builtin_strcpy(target->name, new_name);
+
     return exit_code::success;
 }
 

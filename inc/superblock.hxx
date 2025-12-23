@@ -8,7 +8,6 @@ constexpr int nodes_limit = 1000;
 static const char* valid_signature = "Spare the sympathy";
 
 class superblock {
-protected:
     char8_t signature[52]; /**< A kind of FS identificator */
     // static int8_t sector_size;
     uint16_t block_size;

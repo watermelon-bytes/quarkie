@@ -14,15 +14,12 @@ protected:
     uint16_t block_size;
     sector_no total_blocks;
 
-    // size_t total_size;
-
-    void (*read_blocks)(sector_no source, size_t, char* destination);
-    void (*write_blocks)(const char* source, sector_no destination, size_t);
-
     node root = node(&root, true);
+
     range free_space_start;
 
-    /* to manage nodes dynamically, use this allocator */
+    /* This allocator should be used to manage nodes dynamically and must be the
+     * only way nodes are created. */
     bitmap<node, nodes_limit> node_allocator;
 
     // #auxilary
@@ -34,11 +31,12 @@ protected:
     }
 
 public:
-    explicit superblock(const sector_no given_space,
-                        void (*read_disk_api)(sector_no, size_t, char*),
-                        void (*write_disk_api)(const char*, sector_no, size_t));
+    char* (*read_blocks)(sector_no source, const size_t);
+    void (*write_blocks)(const char* source, sector_no destination, size_t);
 
-    node* get_node_by_path(const char*) const;  // #auxilary
+    explicit superblock(const sector_no given_space,
+                        char* (*read_disk_api)(sector_no, size_t),
+                        void (*write_disk_api)(const char*, sector_no, size_t));
 };
 
 extern superblock sb;

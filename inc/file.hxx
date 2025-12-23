@@ -2,6 +2,8 @@
 #define FILE_H
 #include <uchar.h>
 
+#include <cstdint>
+
 #include "common_api.hxx"
 
 namespace quarkie {
@@ -9,21 +11,25 @@ namespace quarkie {
 class node {
 protected:
     struct {
-        uint8_t directory
-            : 1; /**< Node type: either directory (set to 1) or file (clear) */
-        uint8_t readonly : 1; /**< "Write" operations permissions status */
+        uint8_t directory : 1;
+        /**< Node type: either directory (set to 1) or file (clear) */
 
-        uint8_t more_sectors
-            : 1; /**<
-                  * If set to 0, then all metadata is contained in
-                  * `data.descriptors`. Otherwise when sectors descriptors dont
-                  * fit in 'data.descriptors' it means that reading from
-                  * 'data.more_sectors' is needed */
+        uint8_t readonly : 1;
+        /**< "Write" operations permissions global status */
+
+        uint8_t more_sectors : 1;
+        /**<
+         * If set to 0, then all metadata is contained in
+         * `data.descriptors`. Otherwise when sectors descriptors dont
+         * fit in 'data.descriptors' it means that reading from
+         * 'data.more_sectors' is needed */
+
+        uint8_t is_open : 1;
 
         uint8_t : 0; /* reserved */
     } attributes;
 
-    int32_t identificator;  // for faster searching
+    int32_t identificator;  // speed up searching
 
     constexpr static uint max_name_len = 32;
     /* 32 should be enough for simplicity */
@@ -66,6 +72,8 @@ public:
 
     void set_readonly(bool);  // #auxilary for: make_readonly
     explicit node(node* parent, bool directory = false);
+
+    friend exit_code quarkie::set_name(const char* path, const char* new_name);
 };
 
 }  // namespace quarkie

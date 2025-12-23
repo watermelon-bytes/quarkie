@@ -64,7 +64,7 @@ quarkie::bitmap<t, slots_count>::bitmap() {
     reset();
 
     constexpr auto extra_slots = slots_count % 8;
-    if (extra_slots > 0) {
+    if constexpr (extra_slots > 0) {
         bits[bitmap_size - 1] |= 0xFF >> extra_slots;
     }
 #ifdef DEBUG

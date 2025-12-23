@@ -27,7 +27,11 @@ struct range {
 
 constexpr range nulldescriptor = {.begin = 0, .len = 0};
 
-exit_code mount();
+/*
+ *
+ *
+ */
+exit_code mount(const sector_no disk_space);
 
 exit_code fs_init(const sector_no size,
                   void (*const panic_handler)(const char*));
@@ -35,13 +39,18 @@ exit_code fs_init(const sector_no size,
 exit_code make_dir(const char* path);
 exit_code create_file(const char* path);
 
+exit_code open(const char* path);
+exit_code close(int id);
+
 void fs_panic(const char* reason);
 // exit_code get_sectors(const char* path);
 
 exit_code make_readonly(const char* path);
 
-/* Removes a node from the tree but if 'recursive' is set to false then deleting
- * non-empty directories will fail */
+/*
+ * @brief Removes a node from the tree but if 'recursive' is set to false then
+ * deleting non-empty directories will fail
+ */
 exit_code remove(const char* path, bool recursive = false);
 
 /* as simple as 'this->name = new_name' */

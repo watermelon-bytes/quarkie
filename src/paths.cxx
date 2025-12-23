@@ -23,7 +23,7 @@ word take_word(const char* str) {
     return output;
 }
 
-word take_word_from_back(const char* str) {
+word take_filename(const char* str) {
     if (!str || !*str) return no_word;
     str += __builtin_strlen(str) - 1;
 
@@ -34,10 +34,8 @@ word take_word_from_back(const char* str) {
     return {str, (ushort)(end - str + 1)};
 }
 
-word take_filename(const char* str) { return take_word_from_back(str); }
-
 word take_directory(const char* path) {
-    auto* const end = path = take_filename(path).c;
+    auto* const end = path = take_filename(path).c - 1;
     while (*path != separator) path--;
 
     return word{path, (ushort)(end - path)};

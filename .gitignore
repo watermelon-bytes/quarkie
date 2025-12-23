@@ -1,9 +1,6 @@
-./build/
-./testing/build/
+build/
+testing/build/
 
-# Build 
-*.cmake
-*.make
 
 # Prerequisites
 *.d

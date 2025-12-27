@@ -20,9 +20,10 @@ target_include_directories(quarkie_api PUBLIC inc/)
 
 
 add_compile_options(quarkie_api PRIVATE # do not export compile options
+    -nostdlib -nostdinc++
     -ffreestanding -fno-stack-protector -fno-exceptions -fno-rtti
     # hope this ^^^^ will setup full x86-64 freestanding
     #
-    -Wall -Wextra -O1 -g
+    -Wall -Wextra -O0 -g
     -m64 -march=x86-64 -mtls-direct-seg-refs
 )

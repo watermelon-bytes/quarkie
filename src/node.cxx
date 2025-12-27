@@ -1,16 +1,18 @@
 #ifndef NODE_CPP
 #define NODE_CPP
 
+#include <common_api.hxx>
 #include <file.hxx>
 #include <superblock.hxx>
 using namespace quarkie;
 
-node::node(node* parent_ptr, bool dir) {
+exit_code node::init(node* parent_ptr, bool dir_indicator) {
     mother = parent_ptr;
-    if (!mother) {
-        fs_panic(
+    if (! mother) {
+        sb.external_interface->fs_panic(
+            exit_code::invalid_parental_dir,
             "error: `node` cannot be initialized without a parent directory");
-        return;
+        return exit_code::invalid_parental_dir;
     }
 #ifdef DEBUG
     if (parent_ptr == this) {
@@ -19,23 +21,23 @@ node::node(node* parent_ptr, bool dir) {
 #endif
 
     if (parent_ptr->add_child(this) != exit_code::success) {
-        fs_panic(
+        sb.external_interface->fs_panic(
+            exit_code::invalid_parental_dir,
             "error: 'node' constructor: `parent_ptr` must point to a folder");
-        return;
+        return exit_code::invalid_parental_dir;
     }
 
-    attributes.directory = dir;
-
+    is_directory = dir_indicator;
 #ifdef DEBUG
     cout << "Node initialized" << endl;
-
 #endif
+    return exit_code::success;
 }
 
 exit_code node::add_child(node* son) {
-    if (attributes.directory) {
-        son->next_node = data.eldest_child;
-        data.eldest_child = son;
+    if (this->is_directory) {
+        son->next_node = data.children.eldest_child;
+        data.children.eldest_child = son;
         return exit_code::success;
     }
 
@@ -46,14 +48,17 @@ exit_code mark_free(const range);
 exit_code mark_free(const sector_no start, const uint length);
 
 exit_code node::cleanup_file_space() {
-    if (attributes.directory) return exit_code::not_a_file;
-    if (this->attributes.more_sectors) {
-        auto meta = sb.read_blocks(data.more_descriptors, 1);
-        const auto size = *(uint*)meta;
+    if (this->is_directory)
+        return exit_code::not_a_file;
+
+    else if (this->fragmented) {
+        auto meta =
+            sb.external_interface->read_blocks(data.more_descriptors, 1);
+        const auto size = *(uint*) meta;
         if (size <= 0) {
             // TODO: handle error
         }
-        auto* records = (range*)(reinterpret_cast<uint*>(meta) + 1);
+        auto* records = (range*) (((uint*) meta) + 1);
         for (uint i = 0; i < size; ++i) {
             mark_free(records[i]);
         }
@@ -70,18 +75,32 @@ exit_code node::cleanup_file_space() {
 }
 
 // TODO:
-exit_code quarkie::create_file(const char* path) {}
+exit_code quarkie::create_file(const char* path) {
+    node* parent_dir = &sb.root;
 
-exit_code node::remove_child(int id) {
-    if (attributes.directory) {
-        node *prev = nullptr, *curr = data.eldest_child;
+    for (;;) {
+    } /* ... TODO: parse path */
+    node* new_file = sb.node_allocator.give_slot();
+    if (new_file == nullptr) {
+        return exit_code::out_of_memory;
+    }
+
+    return new_file->init(parent_dir);
+}
+
+exit_code node::remove_child(const int id) {
+    if (this->is_directory) {
+        node *prev = nullptr, *curr = this->data.children.eldest_child;
         while (curr != nullptr && curr->identificator != id) {
             prev = curr;
             curr = curr->next_node;
         }
-        if (!curr) return exit_code::no_such_file;
+        if (! curr) {
+            ;
+        }
+        if (! curr) return exit_code::no_such_file;
 
-        data.eldest_child = prev;
+        this->data.children.eldest_child = prev;
         if (prev) prev->next_node = curr->next_node;
 
         return exit_code::success;
@@ -93,15 +112,15 @@ exit_code node::remove_child(int id) {
 // node* superblock::get_node_by_path(const char*) {}
 
 exit_code make_readonly(const char* path) {
-    node* target = main.get_node_by_path(path);
-    target->set_readonly(1);
+    node* target = sb.get_node_by_path(path);
+    target->set_readonly(true);
 
     return exit_code::success;
 }
 
 exit_code quarkie::set_name(const char* path, const char* new_name) {
     node* target = string_utils::find_file(path);
-    __builtin_strcpy(target->name, new_name);
+    __builtin_strcpy((char*) &target->name, new_name);
 
     return exit_code::success;
 }

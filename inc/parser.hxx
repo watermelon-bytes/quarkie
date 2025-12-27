@@ -1,12 +1,23 @@
-#ifndef PARSER_HPP
-#define PARSER_HPP
+#ifndef STRING_UTILS_HXX
+#define STRING_UTILS_HXX
 
-// #auxilary
+namespace quarkie {
+class node;
+};
+
 namespace string_utils {
 
 struct word {
     const char* c;
     unsigned short size;
+
+    inline bool operator==(const word& that) const {
+        return ! __builtin_memcmp(this, &that, this->size);
+    }
+
+    inline bool operator!=(const char16_t* str) const {
+        return __builtin_memcmp(this, str, this->size);
+    }
 };
 
 extern char separator; /**< any character that will be forbidden in file names
@@ -26,6 +37,7 @@ word take_filename(const char* path);
  * @brief Extracts the folder name that file pointed to by @path is located
  */
 word take_directory(const char* path);
+quarkie::node* find_file(const char* str);
 
 }  // namespace string_utils
 

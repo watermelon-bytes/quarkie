@@ -2,11 +2,11 @@
 #define BITMAP_HPP
 
 #include <stdint.h>
+#include <sys/types.h>
 
 #include <climits>
 #include <cstdint>
 
-#define DEBUG  // #build
 #ifdef DEBUG
     #include <bitset>
     #include <cassert>
@@ -19,14 +19,13 @@ namespace quarkie {
 
 using byte = unsigned char;
 
-#pragma GCC optimize("O2")
 inline constexpr static ulong div_and_ceil(ulong a, ulong b) {
     return a / b + (a % b ? 1 : 0);
 }
 
 template <typename t, uint slots_count>
 class bitmap {
-    uint borrowed_slots_counter = 0;
+    uint borrowed_slots_counter{0};
 
     constexpr static ulong bitmap_size = div_and_ceil(slots_count, 8);
     byte bits[bitmap_size]{0};
@@ -142,7 +141,7 @@ void quarkie::bitmap<t, blocks_count>::free_slot(const t* ptr) {
     auto base_ptr = (byte* const)base; /* i love `auto` when rvalue is casted*/
 
     /* Check alignment */
-    ptrdiff_t distance = block_ptr - base_ptr;
+    std::ptrdiff_t distance = block_ptr - base_ptr;
     if (distance % sizeof(t) || distance > sizeof(t) * blocks_count ||
         distance < 0) {
 #ifdef DEBUG

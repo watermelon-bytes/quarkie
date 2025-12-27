@@ -1,4 +1,0 @@
-/home/patrick/quarkie_fs/testing/CMakeFiles/bitmap-test.out.dir
-/home/patrick/quarkie_fs/testing/CMakeFiles/test_parser.out.dir
-/home/patrick/quarkie_fs/testing/CMakeFiles/edit_cache.dir
-/home/patrick/quarkie_fs/testing/CMakeFiles/rebuild_cache.dir

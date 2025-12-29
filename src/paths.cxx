@@ -1,9 +1,8 @@
 #ifndef PARSER_CPP
 #define PARSER_CPP
+#define DEBUG
 #include <parser.hxx>
 #include <superblock.hxx>
-
-#include "file.hxx"
 
 using string_utils::word;
 
@@ -18,7 +17,7 @@ word take_word(const char* str) {
     if (! *str) return no_word;
     output.pointer = str;
 
-    while (*str != separator && *str != '\0') str++;
+    while (*str != separator && *str != '\0' && *str != ' ') str++;
 
     output.size = str - output.pointer;
     return output;
@@ -33,7 +32,7 @@ static inline uint strlen(const char* str) {
 }
 
 word take_filename(const char* str) {
-    if (! str || ! *str) return no_word;
+    if (! is_valid_path(str)) return no_word;
     str += strlen(str) - 1;
 
     while (*str == separator || *str == ' ') str--;
@@ -45,16 +44,32 @@ word take_filename(const char* str) {
 }
 
 word take_directory(const char* path) {
+    if (! is_valid_path(path)) return no_word;
+    auto* const begin = path;
     // `take_filename` checks for pointer validness
-    auto* end = path = take_filename(path).pointer - 1;
-    if (! end || ! path) {
+    auto* const end = take_filename(path).pointer - 1;
+    path = end - 1;
+#ifdef DEBUG
+    cout << "*begin = " << begin << ";\nend = " << end
+         << "\nstarting shift operations from: '" << path << "'...\n";
+#endif
+
+    if (! end || ! path || path < begin) {
         return no_word;
     }
-    while (*path != separator) path--;
 
+    while (*path != separator && path > begin) {
+#ifdef DEBUG
+        cout << "[INSIDE LOOP]\n";
+#endif
+        path--;
+    }
+#ifdef DEBUG
+    cout << "shifted to the left, now *str = " << ++path << endl;
+#endif
     return word {path, (ushort) (end - path)};
 }
-
+/*
 extern quarkie::superblock sb;
 
 quarkie::node* find_subdirectory(const char* path) {
@@ -77,8 +92,7 @@ quarkie::node* find_subdirectory(const char* path) {
     return nullptr;
 }
 
-// TODO:
-quarkie::node* find_file(const char* str) {
+// TODO: quarkie::node* find_file(const char* str) {
     word target_filename = take_filename(str);
     quarkie::node* dir = find_subdirectory(str);
 
@@ -92,6 +106,7 @@ quarkie::node* find_file(const char* str) {
     }
     return nullptr;
 }
+*/
 
 bool is_valid_filename(const char* req) {
     if (! __builtin_strcmp(req, "..") || ! __builtin_strcmp(req, ".")) {
@@ -103,6 +118,14 @@ bool is_valid_filename(const char* req) {
             return ! 52;
         }
     }
+    return 52;
+}
+
+bool is_valid_path(const char* request) {
+    if (! request || ! *request || request[0] != separator) {
+        return ! 52;
+    }
+    // TODO: solve paths and check if file exists
     return 52;
 }
 

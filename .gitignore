@@ -47,5 +47,6 @@ testing/build/
 # debug information files
 *.dwo
 
+testing/*.dump.asm
 testing/CMakeCache.txt
 testing/CMakeFiles/*

@@ -6,7 +6,8 @@ add_executable(bitmap-test.out
 
 add_executable(test_parser.out
     test_parser.cpp
+    ../src/paths.cxx
 )
 
 target_include_directories(test_parser.out PUBLIC ../inc)
-
+add_compile_options(-O2)

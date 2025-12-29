@@ -1,34 +1,117 @@
 #include <cassert>
-#include <ostream>
 #define DEBUG
 #include <string.h>
 
+#include <iomanip>
 #include <iostream>
-using std::cout, std::endl;
 #include <parser.hxx>
 
-#include "../src/paths.cxx"
+using std::cout, std::endl;
+using namespace string_utils;
 
+// Глобальный разделитель — как в твоём коде
 char string_utils::separator = '/';
 
-const char* testcase1 = "/root";
+constexpr auto no_word = word {nullptr, 0};
 
-void test_take_word_from_back() {
-    string_utils::word expected, gotten;
-    // -----------------------
-    const char* expected_str = "root";
-    const uint expected_len = strlen(expected_str);
-    cout << "Expected: len = " << expected_len << "; *str = " << expected_str
-         << endl;
+// Красивые цвета в терминале
+#define GREEN "\033[32m"
+#define RED "\033[31m"
+#define RESET "\033[0m"
 
-    gotten = string_utils::take_word_from_back(testcase1);
-    cout << "Gotten: len = " << gotten.size << "; *str = " << gotten.c << endl;
-    // (expected_len == gotten.size &&
-    //      __builtin_memcmp(expected_str, gotten.c, gotten.size) == 0);
-}
+class testcase {
+    inline static uint counter = 0;
+    uint number;
+
+    const char* description;
+    word (*func)(const char*);
+    const char* path;
+
+    word expected;
+    word gotten;
+
+public:
+    testcase(const char* desc, word (*f)(const char*), const char* p,
+             const word& exp)
+        : description(desc),
+          func(f),
+          path(p),
+          expected(exp),
+          number(++counter) {
+        run();
+    }
+
+    void run() {
+        gotten = func(path);
+
+        cout << "TEST #" << std::setw(2) << number << " | " << description
+             << "\n"
+             << "   Path:     \"" << (path ? path : "(null)") << "\"\n"
+             << "   Expected: len=" << expected.size
+             << " str=" << (expected.pointer ? expected.pointer : "(null)")
+             << "\n"
+             << "   Got:      len=" << gotten.size
+             << " str=" << (gotten.pointer ? gotten.pointer : "(null)") << "\n";
+
+        bool passed =
+            (expected.size == gotten.size) &&
+            (expected.pointer == gotten.pointer ||
+             (expected.pointer && gotten.pointer &&
+              ! memcmp(expected.pointer, gotten.pointer, expected.size)));
+
+        if (passed) {
+            cout << GREEN "[PASS]" RESET "\n\n";
+        } else {
+            cout << RED "[FAIL]" RESET "\n\n";
+            std::abort();  // сразу падаем, чтобы видеть где ошибка
+        }
+    }
+};
 
 int main() {
-    cout << "----------- TEST 1 ----------" << endl;
-    test_take_word_from_back();
-    cout << "---------- SUCCESS -----------" << endl;
+    cout << "=== string_utils tests ===\n\n";
+
+    // ===================================================================
+    // take_word
+    // ===================================================================
+    new testcase("take_word: normal path", take_word, "/foo/bar/faz",
+                 word {"foo", 3});
+    new testcase("take_word: leading separator", take_word, "///foo/bar",
+                 word {"foo", 3});
+    new testcase("take_word: spaces skipped", take_word, "   foo   /bar",
+                 word {"foo", 3});
+    new testcase("take_word: empty string", take_word, "", no_word);
+    new testcase("take_word: only separators", take_word, "////", no_word);
+    new testcase("take_word: after first word", take_word, "/foo/bar/faz",
+                 word {"foo", 3});
+    // Чтобы протестировать второе слово — сдвинем указатель вручную
+    const char* after_foo = "/foo/bar/faz" + 4;  // указывает на "bar/faz"
+    new testcase("take_word: second word", take_word, after_foo,
+                 word {"bar", 3});
+
+    // ===================================================================
+    // take_filename
+    // ===================================================================
+    new testcase("take_filename: normal", take_filename, "/foo/bar/faz",
+                 word {"faz", 3});
+    new testcase("take_filename: root file", take_filename, "/file.txt",
+                 word {"file.txt", 8});
+    new testcase("take_filename: trailing separator", take_filename,
+                 "/foo/bar/", word {"bar", 3});
+    // new testcase("take_filename: only root", take_filename, "/", no_word);
+    new testcase("take_filename: empty", take_filename, "", no_word);
+    // new testcase("take_filename: no separator", take_filename, "justname",
+    // word {"justname", 8});
+
+    // ===================================================================
+    // take_directory
+    // ===================================================================
+    new testcase("take_directory: normal", take_directory, "/foo/bar/faz",
+                 word {"bar", 3});
+    new testcase("take_directory: deep path", take_directory, "/a/b/c/d/e.txt",
+                 word {"d", 1});
+    new testcase("take_directory: empty", take_directory, "", no_word);
+
+    cout << GREEN "All tests passed successfully!" RESET "\n";
+    return 0;
 }

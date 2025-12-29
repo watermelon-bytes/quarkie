@@ -51,7 +51,7 @@ public:
 
     node* get_node_by_path(const char*) const;
 
-    friend node* string_utils::find_file(const char* path);
+    // friend node* string_utils::find_file(const char* path);
 };
 
 // Used to describe currently open files

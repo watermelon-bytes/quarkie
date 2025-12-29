@@ -3,28 +3,14 @@
 #include <uchar.h>
 
 #include <bitmap/bitmap.hxx>
-#include <common_api.hxx>
-#include <cstdint>
 #include <file.hxx>
-#include <parser.hxx>
 
 namespace quarkie {
 
-// Used to describe currently open files
-struct file_entry {
-    node* fdescriptor_ptr;
-    uint8_t mode;
-    uint cursor; /* Current r/w offset position */
-};
-
-enum class modes : uint8_t { read = 1 << 0, write = 1 << 1 };
-
-constexpr uint nodes_limit = 1000;
 static const char valid_signature[] = "Spare the sympathy";
 /* ^^ Can't declare as `const char*` because then `int
-strlen(char)`` is needed and thus
-`valid_signature_length` cannot be calculated at
-compilation time */
+strlen(char)` is needed and then `valid_signature_length` cannot be calculated
+at compilation time */
 static constexpr uint valid_signature_length =
     sizeof(valid_signature) / sizeof(char);
 
@@ -49,10 +35,13 @@ class superblock {
     }
 
 public:
-    /* NOTE: This allocator should be used to manage nodes dynamically and must
-     * be the only way how nodes are created. */
+    /* NOTE: This allocator should be used to a sort of dynamically manage nodes
+     * and must be the only way how nodes are created. */
+    constexpr static uint nodes_limit = 1000;
     quarkie::bitmap<node, nodes_limit> node_allocator;
+
     node root;
+
     const low_level_interface*
         external_interface; /**< The whole interface used by filesystem. Pointer
                                is used for conviniency. */
@@ -64,6 +53,16 @@ public:
 
     friend node* string_utils::find_file(const char* path);
 };
+
+// Used to describe currently open files
+struct file_entry {
+    node* fdescriptor_ptr;
+    uint8_t mode;
+    uint cursor; /* Current r/w offset position */
+};
+
+constexpr static uint max_open_files = 50;
+extern quarkie::bitmap<file_entry, max_open_files> open_files_table;
 
 extern superblock sb;
 

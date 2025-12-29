@@ -10,13 +10,18 @@ namespace quarkie {
 enum class exit_code : int8_t {
     success = 0,
     no_such_file = 2,
+    no_such_file_or_directory = 3,
     access_forbidden = 8,
     non_empty_folder = 11,
     not_a_directory = 9,
     not_a_file = 10,
     out_of_memory = 127,
-    invalid_parental_dir = 5
+    invalid_parental_dir = 5,
+    invalid_filename = 8,
+    open_files_limit_reached = 20
 };
+
+enum class modes : uint8_t { read = 1 << 0, write = 1 << 1 };
 
 using sector_no = uint32_t; /* alias for readability and typenames splitting */
 
@@ -49,18 +54,26 @@ exit_code make_dir(const char* path);
 exit_code create_file(const char* path);
 
 /*
- * @brief Marks the file as open.
+ * @brief Locates the file it into the table of open units and returns a
+ * descriptor that will be used to perform other operations on this file.
  */
 int open(const char* path);
 
 /*
- *
+ * @brief Looks for `fd` in the table. If found, deletes the descriptor from the
+ * table and returns 0 (`success`). Otherwise, returns `no_such_file`.
  */
 exit_code close(int id);
 
 // exit_code get_sectors(const char* path);
 
 exit_code make_readonly(const char* path);
+
+exit_code write_to(const int fd, char* from_where, const uint size);
+
+exit_code read_from(const int fd, char* to_where, const uint size);
+
+exit_code change_offset(const int fd, const uint new_offset);
 
 /*
  * @brief Removes a node from the tree but if 'recursive' is set to `false` then

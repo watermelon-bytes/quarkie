@@ -1,7 +1,7 @@
 #ifndef SPACE_TRACKER_CPP
 #define SPACE_TRACKER_CPP
+#include <common_api.hxx>
 #include <free_space_tracker.hxx>
-
 namespace quarkie {
 
 template <unsigned short int sector_size>

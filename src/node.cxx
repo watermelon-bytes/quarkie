@@ -78,8 +78,6 @@ exit_code node::cleanup_file_space() {
 exit_code quarkie::create_file(const char* path) {
     node* parent_dir = &sb.root;
 
-    for (;;) {
-    } /* ... TODO: parse path */
     node* new_file = sb.node_allocator.give_slot();
     if (new_file == nullptr) {
         return exit_code::out_of_memory;
@@ -88,17 +86,16 @@ exit_code quarkie::create_file(const char* path) {
     return new_file->init(parent_dir);
 }
 
-exit_code node::remove_child(const int id) {
+exit_code node::remove_child(const int id, bool dir) {
     if (this->is_directory) {
-        node *prev = nullptr, *curr = this->data.children.eldest_child;
-        while (curr != nullptr && curr->identificator != id) {
+        node *prev = nullptr, *curr = dir ? data.children.eldest_child
+                                          : data.children.first_subdir;
+
+        while (curr != nullptr) {
             prev = curr;
             curr = curr->next_node;
+            if (curr->identificator == id) break;
         }
-        if (! curr) {
-            ;
-        }
-        if (! curr) return exit_code::no_such_file;
 
         this->data.children.eldest_child = prev;
         if (prev) prev->next_node = curr->next_node;
@@ -108,6 +105,8 @@ exit_code node::remove_child(const int id) {
 
     return exit_code::not_a_directory;
 }
+
+exit_code node::remove_child_by_ptr(node* ptr) {}
 
 // node* superblock::get_node_by_path(const char*) {}
 

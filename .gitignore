@@ -46,3 +46,6 @@ testing/build/
 
 # debug information files
 *.dwo
+
+testing/CMakeCache.txt
+testing/CMakeFiles/*

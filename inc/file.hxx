@@ -10,7 +10,9 @@ struct node {
     /**< Node type: either directory (set to 1) or file (clear) */
 
     uint8_t readonly : 1;
-    /**< "Write" operations permissions global status */
+    /**< "Write" operations permissions global status (doesn't depend on how the
+     * file was open) Doesn't mean anything for a directory.
+     */
 
     uint8_t fragmented : 1;
     /**<
@@ -25,7 +27,7 @@ struct node {
 
     constexpr static uint max_name_len = 32;
     /* 32 should be enough for simplicity */
-    char16_t name[max_name_len];
+    char name[max_name_len];
 
     // directory-parent
     node* mother;  // (for "/" it equals to `this`)
@@ -50,9 +52,6 @@ struct node {
         /**< The sector that contains just ranges (extended for a File).   */
     } data;
 
-    // inline bool is_directory() const { return flags.directory; }
-    // inline bool is_readonly() const { return flags.readonly; }
-
     /*NOTE: These public methods all return `exit_code` because their result
         should be used directly returning from common FS API functions (like
        `create_file`, see signatures in `common_api.hxx`) */
@@ -60,7 +59,7 @@ struct node {
     exit_code add_child(node*);  // approximately: this->eldest_child = node;
     exit_code change_parent(node*);
 
-    exit_code remove_child(const int32_t);
+    exit_code remove_child(const int32_t, bool);
     exit_code remove_child_by_ptr(node*);
 
     exit_code cleanup_file_space();  // #auxilary for: remove_child

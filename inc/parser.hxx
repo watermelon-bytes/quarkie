@@ -56,7 +56,7 @@ quarkie::node* find_file(const char* path);
  */
 quarkie::node* find_subdirectory(const char* path);
 
-inline bool is_valid_filename(const char* req);
+bool is_valid_filename(const char* req);
 
 }  // namespace string_utils
 

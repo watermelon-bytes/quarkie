@@ -3,6 +3,8 @@
 #include <parser.hxx>
 #include <superblock.hxx>
 
+#include "file.hxx"
+
 using string_utils::word;
 
 namespace string_utils {
@@ -43,7 +45,11 @@ word take_filename(const char* str) {
 }
 
 word take_directory(const char* path) {
+    // `take_filename` checks for pointer validness
     auto* end = path = take_filename(path).pointer - 1;
+    if (! end || ! path) {
+        return no_word;
+    }
     while (*path != separator) path--;
 
     return word {path, (ushort) (end - path)};
@@ -52,37 +58,42 @@ word take_directory(const char* path) {
 extern quarkie::superblock sb;
 
 quarkie::node* find_subdirectory(const char* path) {
-    word target;
-
-    target = take_directory(path);
+    word target = take_word(path);
+    const word final_target = take_directory(path);
     quarkie::node* current = quarkie::sb.root.data.children.first_subdir;
-    while (target != (const char*) &(current->name)) {
-        if (! (current->next_node)) {
-            return nullptr;
+    while (current) {
+        if (target != reinterpret_cast<const char*>(&current->name)) {
+            current = current->next_node;
+        } else if (target == final_target) {
+            return current;
+        } else {
+            // Deeper into the tree
+            path += target.size;
+            target = take_word(path);
+            current = current->data.children.first_subdir;
         }
-
-        current = current->next_node;
     }
 
     return nullptr;
 }
 
+// TODO:
 quarkie::node* find_file(const char* str) {
-    word target = string_utils::take_word(str),
-         final_target = string_utils::take_filename(str);
+    word target_filename = take_filename(str);
+    quarkie::node* dir = find_subdirectory(str);
 
-    for (quarkie::node* curr_node = &sb.root; curr_node != nullptr;
-         curr_node = curr_node->next_node) {
-        /* Check if current node matches with current directory we need to find.
-         * As long as target.size <= strlen(str), memcmp should be safe */
+    // Linear search through the list is O(n)...
+    quarkie::node* curr_node = dir->data.children.eldest_child;
+    for (; curr_node != nullptr; curr_node = curr_node->next_node) {
+        if (target_filename != (const char*) &curr_node->name) {
+            continue;
+        }
+        return curr_node;
     }
-    quarkie::node* curr_directory = &sb.root;
     return nullptr;
 }
 
-};  // namespace string_utils
-
-inline bool string_utils::is_valid_filename(const char* req) {
+bool is_valid_filename(const char* req) {
     if (! __builtin_strcmp(req, "..") || ! __builtin_strcmp(req, ".")) {
         return ! 52;
     }
@@ -94,5 +105,7 @@ inline bool string_utils::is_valid_filename(const char* req) {
     }
     return 52;
 }
+
+};  // namespace string_utils
 
 #endif  // !PARSER_H

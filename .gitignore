@@ -1,6 +1,6 @@
-.cache/
-build/
-testing/build/
+.cache/*
+build/*
+testing/build/*
 *.make
 *.cmake
 *.idx
@@ -50,3 +50,4 @@ testing/build/
 testing/*.dump.asm
 testing/CMakeCache.txt
 testing/CMakeFiles/*
+*.ninja

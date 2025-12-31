@@ -1,12 +1,11 @@
 #ifndef BITMAP_HPP
 #define BITMAP_HPP
 
-#include <stdint.h>
 #include <sys/types.h>
 
 #include <climits>
 #include <cstdint>
-
+#define DEBUG
 #ifdef DEBUG
     #include <bitset>
     #include <cassert>
@@ -25,32 +24,35 @@ inline constexpr static ulong div_and_ceil(ulong a, ulong b) {
 
 template <typename t, uint slots_count>
 class bitmap {
-    uint borrowed_slots_counter{0};
+    uint borrowed_slots_counter {0};
 
-    constexpr static ulong bitmap_size = div_and_ceil(slots_count, 8);
-    byte bits[bitmap_size]{0};
+    constexpr static ulong bitmap_size = div_and_ceil(slots_count, CHAR_BIT);
+    byte bits[bitmap_size] {0};
 
-    t base[slots_count];
+    t base[slots_count];  // No need in external memory allocation.
+    // ^^^ Hope & Pray that the compiler won't generate implicit initialisation
+    // code (executed in runtime) for this member because slots_count *
+    // sizeof(slot) may be a large number.
 
     struct {
         short position : 13;
         short offset : 3;
-    } last_freed_bit{0, 0};
+    } last_freed_bit {0, 0};
     /* ^^^^^^^ save here information about what was freed last time
      * to speed up allocating*/
 
 public:
-    bitmap();
+    explicit bitmap();
 
-    [[nodiscard("The allocated slot must be stored and freed after using.")]] t*
-    give_slot();
+    [[nodiscard("The allocated slot must be stored and freed after using.")]]
+    t* give_slot();
 
     void free_slot(const t*);
 
     void reset();
 
 #ifdef DEBUG
-    uint get_borrowed_count() const { return borrowed_slots_counter; }
+    inline uint get_borrowed_count() const { return borrowed_slots_counter; }
     void dump(int index = -1) const;
 #endif
 };
@@ -62,9 +64,9 @@ template <typename t, uint slots_count>
 quarkie::bitmap<t, slots_count>::bitmap() {
     reset();
 
-    constexpr auto extra_slots = slots_count % 8;
+    constexpr auto extra_slots = slots_count % CHAR_BIT;
     if constexpr (extra_slots > 0) {
-        bits[bitmap_size - 1] |= 0xFF >> extra_slots;
+        bits[bitmap_size - 1] |= CHAR_MAX >> extra_slots;
     }
 #ifdef DEBUG
     cout << "Bitmap initialized: " << slots_count << " blocks (" << bitmap_size
@@ -76,11 +78,11 @@ quarkie::bitmap<t, slots_count>::bitmap() {
 template <typename t, uint blocks_count>
 t* quarkie::bitmap<t, blocks_count>::give_slot() {
 #ifdef DEBUG  // #unnecessary
-    cout << "give_slot() called." << endl;
+    cout << "give_slot() called.\n";
 #endif
 
     if (borrowed_slots_counter == blocks_count) {
-#ifdef DEBUG
+#ifdef DEBUG  // #unnecessary
         cout << "error: bitmap is fulfilled (borrowed_slots_counter = "
              << borrowed_slots_counter << " and blocks_count = " << blocks_count
              << "), cannot allocate slot" << endl;
@@ -91,13 +93,13 @@ t* quarkie::bitmap<t, blocks_count>::give_slot() {
     int index = last_freed_bit.position, offset = last_freed_bit.offset;
 
     if (index != -1) {
-#ifdef DEBUG
+#ifdef DEBUG  // #unnecessary
         if (bits[last_freed_bit.position] & (1 << last_freed_bit.offset)) {
-            cout << __FILE__ << ": error: inside `" << __FUNCTION__
-                 << "`: `last_freed_bit` looks at a borrowed bit" << endl
+            cout << __FILE__ << ": error: inside `" << __PRETTY_FUNCTION__
+                 << "`: `last_freed_bit` looks at a borrowed bit\n"
                  << "last_freed_bit.position = " << last_freed_bit.position
-                 << endl
-                 << "last_freed_bit.offset = " << last_freed_bit.offset << endl;
+                 << "\nlast_freed_bit.offset = " << last_freed_bit.offset
+                 << endl;
             dump(last_freed_bit.offset);
 
             exit(-1);
@@ -105,7 +107,7 @@ t* quarkie::bitmap<t, blocks_count>::give_slot() {
 #endif  // DEBUG
 
         last_freed_bit.position = -1; /* not a free slot anymore */
-        goto gotten;
+        goto found_slot;
     }
 
     for (index = 0; index < bitmap_size; ++index) {
@@ -114,9 +116,9 @@ t* quarkie::bitmap<t, blocks_count>::give_slot() {
             continue;
         }
 
-        for (offset = 0; offset < 8; offset++) {
+        for (offset = 0; offset < CHAR_BIT; offset++) {
             if ((bits[index] | (1 << offset)) != bits[index]) {
-                goto gotten;
+                goto found_slot;
             }
         }
     }
@@ -129,16 +131,16 @@ t* quarkie::bitmap<t, blocks_count>::give_slot() {
 #endif
     return nullptr;
 
-gotten:
+found_slot:
     bits[index] |= (1 << offset);
     borrowed_slots_counter++;
-    return static_cast<t*>(&base[index * 8 + offset]);
+    return static_cast<t*>(&base[index * CHAR_BIT + offset]);
 }
 
 template <typename t, uint blocks_count>
 void quarkie::bitmap<t, blocks_count>::free_slot(const t* ptr) {
-    auto block_ptr = (const byte* const)ptr;
-    auto base_ptr = (byte* const)base; /* i love `auto` when rvalue is casted*/
+    auto block_ptr = (const byte* const) ptr;
+    auto base_ptr = (byte* const) base; /* i love `auto` when rvalue is casted*/
 
     /* Check alignment */
     std::ptrdiff_t distance = block_ptr - base_ptr;
@@ -151,10 +153,11 @@ void quarkie::bitmap<t, blocks_count>::free_slot(const t* ptr) {
 #endif
         return;
     }
-    const int index = (block_ptr - base_ptr) / sizeof(t) / CHAR_BIT,
-              bit_no = ((block_ptr - base_ptr) / sizeof(t)) % CHAR_BIT;
-    /* CHAR_BIT = 8 on most modern systems. It shows the number of bits that in
-     * a byte */
+
+    const uint slot_no = (block_ptr - base_ptr) / sizeof(t);
+    const uint index = slot_no / CHAR_BIT, bit_no = slot_no % CHAR_BIT;
+    /* CHAR_BIT = 8 on most modern systems. It shows the number of bits in
+     * every byte on the current machine. */
 
     /* #ifdef DEBUG
         cout << "free_slot: called on bit " << bit_no << " of byte " << index
@@ -168,7 +171,10 @@ void quarkie::bitmap<t, blocks_count>::free_slot(const t* ptr) {
 }
 
 #ifdef DEBUG
-// #debug #auxilary
+/* #debug #auxilary #unnecessary
+ * Prints current bitmap state to stdout. Debug-build only (since freestanding
+ * code doesnt support std::cout!)
+ */
 template <typename t, uint blocks_count>
 void quarkie::bitmap<t, blocks_count>::dump(int index) const {
     if (index < 0) {

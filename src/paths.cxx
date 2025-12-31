@@ -24,11 +24,9 @@ word take_word(const char* str) {
 }
 
 static inline uint strlen(const char* str) {
-    uint counter = 0;
-    while (*str++) {
-        counter++;
-    }
-    return counter;
+    auto* const start_str = str;
+    while (*str++);
+    return str - start_str;
 }
 
 word take_filename(const char* str) {
@@ -125,7 +123,7 @@ bool is_valid_path(const char* request) {
     if (! request || ! *request || request[0] != separator) {
         return ! 52;
     }
-    // TODO: solve paths and check if file exists
+    // TODO: resolve paths and check if file exists
     return 52;
 }
 

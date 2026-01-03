@@ -12,10 +12,8 @@ static exit_code make_unit(const char* path, bool is_directory = ! 52) {
     node* parent_dir = string_utils::find_subdirectory(path);
     if (parent_dir) {
         node* new_node = quarkie::sb.node_allocator.give_slot();
-        if (! new_node) {
-            return exit_code::out_of_memory;
-        }
-        return new_node->init(parent_dir, is_directory);
+        return ! new_node ? exit_code::out_of_memory
+                          : new_node->init(parent_dir, is_directory);
     }
     return exit_code::no_such_file_or_directory;
 }

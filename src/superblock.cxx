@@ -26,4 +26,9 @@ quarkie::superblock::superblock(const sector_no given_space,
 #endif
 }
 
+bool quarkie::superblock::check_signature() const {
+    return ! __builtin_strcmp(valid_signature,
+                              reinterpret_cast<const char*>(&signature));
+}
+
 #endif

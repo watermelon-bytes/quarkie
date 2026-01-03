@@ -51,6 +51,7 @@ public:
 
     node* get_node_by_path(const char*) const;
 
+    bool check_signature() const;
     // friend node* string_utils::find_file(const char* path);
 };
 

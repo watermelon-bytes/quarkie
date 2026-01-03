@@ -2,6 +2,8 @@
 #define QUARKIE_MAIN
 #include <parser.hxx>
 #include <superblock.hxx>
+
+#include "common_api.hxx"
 using quarkie::exit_code, quarkie::node;
 
 /*
@@ -54,11 +56,12 @@ exit_code quarkie::change_offset(const int fd, const uint new_offset) {
 }
 
 exit_code quarkie::read_dir(const int fd, quarkie::file_info* buffer) {
-    auto* item = search_openfiles_table(fd);
+    file_entry* item = search_openfiles_table(fd);
     if (! item) return exit_code::unit_is_closed;
 
     if ((uint8_t) quarkie::modes::read & item->access_mode) {
-        buffer->name = reinterpret_cast<const char*>(&item->next_item_to_read);
+        buffer->name =
+            reinterpret_cast<const char*>(item->next_item_to_read->name);
         buffer->size = 0;
         return exit_code::success;
     } else {

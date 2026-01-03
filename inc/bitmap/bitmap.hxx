@@ -35,7 +35,7 @@ class bitmap {
     // sizeof(slot) may be a large number.
 
     struct {
-        short position : 13;
+        short position : sizeof(short) * CHAR_BIT - 3;
         short offset : 3;
     } last_freed_bit {0, 0};
     /* ^^^^^^^ save here information about what was freed last time

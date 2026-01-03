@@ -12,7 +12,7 @@ static const char valid_signature[] = "Spare the sympathy";
 strlen(char)` is needed and then `valid_signature_length` cannot be calculated
 at compilation time */
 static constexpr uint valid_signature_length =
-    sizeof(valid_signature) / sizeof(char);
+    sizeof(valid_signature) / sizeof(valid_signature[0]);
 
 class superblock {
     char8_t signature[valid_signature_length + 1];
@@ -56,9 +56,15 @@ public:
 
 // Used to describe currently open files
 struct file_entry {
-    node* fdescriptor_ptr;
-    uint8_t mode;
-    uint cursor; /* Current r/w offset position */
+    node* fdescriptor_node;
+    uint8_t access_mode;
+    union {
+        /* For a file. Current r/w offset position */
+        uint cursor;
+
+        /* For a directory (i.e. for `quarkie::read_dir`) */
+        node* next_item_to_read;
+    };
 };
 
 constexpr static uint max_open_files = 50;

@@ -1,16 +1,20 @@
 #ifndef SPACE_TRACKER_CPP
 #define SPACE_TRACKER_CPP
+#include <climits>
 #include <common_api.hxx>
 #include <free_space_tracker.hxx>
+
 namespace quarkie {
 
-template <unsigned short int sector_size>
-struct [[gnu::packed]] meta_sector {
-    const long signature = 0xDEADCAFE;
-    bool is_filled;
+struct meta_sector {
+    long is_free : 1;
+    const long signature : sizeof(long) * CHAR_BIT - 1 = 0xace0;
 
-    constexpr static size_t size = sector_size / sizeof(range) - 1;
-    range descriptors[size];
+    constexpr static uint capacity =
+        sector_size / sizeof(range) - sizeof(long) - sizeof(uint);
+    range descriptors[capacity];
+    uint size = 0;  // Current count of records.
+    meta_sector() = default;
 };
 
 }  // namespace quarkie

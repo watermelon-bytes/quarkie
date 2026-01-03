@@ -7,7 +7,7 @@ namespace quarkie {
 
 struct node {
     uint8_t is_directory : 1;
-    /**< Node type: either directory (set to 1) or file (clear) */
+    /**< Node type: either directory (when set to 1) or file (clear) */
 
     uint8_t readonly : 1;
     /**< "Write" operations permissions global status (doesn't depend on how the
@@ -23,7 +23,7 @@ struct node {
 
     uint8_t : 0; /* reserved */
 
-    int32_t identificator;  // speed up searching
+    int32_t identificator; /* speed up searching*/
 
     constexpr static uint max_name_len = 32;
     /* 32 should be enough for simplicity */
@@ -35,22 +35,25 @@ struct node {
     node* next_node;
     /**< Next node in the current directory (files inside single
      * directory are implemented as a linked list). May be
-
      * either file or directory*/
+
+    /*===================================================================*/
     union {
         struct {
-            /* For a Directory: pointer to the head of the linked list of
-             * located here file descriptors */
-            node* eldest_child;  // to travel through directory we follow the
-                                 // pointer to next node
-            node* first_subdir;  // here we store subdirectories.
+            node* eldest_child; /**<
+            Stores a pointer to the head of the linked list of located here file
+            descriptors */
+
+            node* first_subdir; /**< For a File: Stores linked list
+                                   subdirectories. */
         } children;
-        /*===================================================================*/
+        /*================================================================*/
         range descriptors[4]; /* For a File: descriptors of the space where the
                                * bits of the file are stored. */
         sector_no more_descriptors;
-        /**< The sector that contains just ranges (extended for a File).   */
+        /**< The sector that contains just ranges (extended for a File).  */
     } data;
+    /*===================================================================*/
 
     /*NOTE: These public methods all return `exit_code` because their result
         should be used directly returning from common FS API functions (like

@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 using uint = unsigned int;
+using sector_no = uint32_t; /* alias for readability and typenames splitting */
 
 namespace quarkie {
 
@@ -18,12 +19,23 @@ enum class exit_code : int8_t {
     out_of_memory = 127,
     invalid_parental_dir = 5,
     invalid_filename = 8,
-    open_files_limit_reached = 20
+    open_files_limit_reached = 29,
+    unit_is_closed = 10
 };
 
-enum class modes : uint8_t { read = 1 << 0, write = 1 << 1 };
+enum class modes : uint8_t {
+    read = 1 << 0,
+    write = 1 << 1,
+    move = 1 << 2,  // Also allows to delete units
+    link = 1 << 3,
+};
 
-using sector_no = uint32_t; /* alias for readability and typenames splitting */
+struct file_info {
+    const char* name;
+    uint size;
+    // time_t last_modified, created; // <- time_t comes from stdlib
+    // (non-freestanding code)
+};
 
 /* NOTE: All blocks numbers and addresses are relative to the superblock */
 
@@ -34,12 +46,16 @@ struct range {
 };
 
 struct low_level_interface {
-    char* (*read_blocks)(sector_no source, const size_t);
-    void (*write_blocks)(const char* source, sector_no destination, size_t);
-    void (*fs_panic)(exit_code error, const char* reason);
-};
+    int (*read_blocks)(char* ready_buffer, sector_no source, const size_t);
+    /**<  */
 
-constexpr range nulldescriptor = {.begin = 0, .len = 0};
+    int (*write_blocks)(const char* source, sector_no destination,
+                        const size_t);
+    /**< */
+
+    void (*fs_panic)(exit_code error, const char* reason);
+    /**< */
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,17 +67,22 @@ exit_code fs_init(const sector_no size,
                   void (*const panic_handler)(const char*));
 
 exit_code make_dir(const char* path);
+
+exit_code read_dir(const int fd, file_info* buf);
+// Caller should prepare buffer and pass it ^^^ there through `buf`
+
 exit_code create_file(const char* path);
 
 /*
  * @brief Locates the file it into the table of open units and returns a
- * descriptor that will be used to perform other operations on this file.
- */
+ * descriptor that must be used to perform other operations such as
+ * `read_from()` or `write_to()` on this file. */
 int open(const char* path);
 
 /*
- * @brief Looks for `fd` in the table. If found, deletes the descriptor from the
- * table and returns 0 (`success`). Otherwise, returns `no_such_file`.
+ * @brief Looks for `fd` in the global filetable. If found, deletes the
+ * descriptor from the table and returns 0 (`success`). Otherwise, returns
+ * `no_such_file`.
  */
 exit_code close(int id);
 
@@ -71,14 +92,19 @@ exit_code make_readonly(const char* path);
 
 exit_code write_to(const int fd, char* from_where, const uint size);
 
-exit_code read_from(const int fd, char* to_where, const uint size);
+/*
+ * @param fd Indicated which file is the target.
+ * @param to_where Externally allocated buffer in memory of size `buf_size` */
+exit_code read_from(const int fd, char* to_where, const uint buf_size);
 
+/*
+ * @brief Sets offset of the file pointed to by `fd` to value given in
+ * `new_offset` */
 exit_code change_offset(const int fd, const uint new_offset);
 
 /*
  * @brief Removes a node from the tree but if 'recursive' is set to `false` then
- * deleting non-empty directories will fail
- */
+ * deleting non-empty directories will fail */
 exit_code remove(const char* path, bool recursive = false);
 
 /* as simple as 'this->name = new_name' */

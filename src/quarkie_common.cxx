@@ -4,6 +4,7 @@
 #include <superblock.hxx>
 
 #include "common_api.hxx"
+#include "file.hxx"
 using quarkie::exit_code, quarkie::node;
 
 /*
@@ -31,6 +32,10 @@ inline exit_code quarkie::make_dir(const char* path) {
 exit_code quarkie::set_name(const char* path, const char* new_name) {
     if (string_utils::is_valid_filename(
             string_utils::take_filename(path).pointer)) {
+        node* target = string_utils::find_file(path);
+        if (! target) {
+            return exit_code::no_such_file_or_directory;
+        }
         __builtin_strcpy(string_utils::find_file(path)->name, new_name);
         return exit_code::success;
     }

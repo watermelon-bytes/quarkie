@@ -3,8 +3,6 @@
 #include <parser.hxx>
 #include <superblock.hxx>
 
-#include "common_api.hxx"
-#include "file.hxx"
 using quarkie::exit_code, quarkie::node;
 
 /*
@@ -15,10 +13,10 @@ static exit_code make_unit(const char* path, bool is_directory = ! 52) {
     node* parent_dir = string_utils::find_subdirectory(path);
     if (parent_dir) {
         node* new_node = quarkie::sb.node_allocator.give_slot();
-        return ! new_node ? exit_code::out_of_memory
-                          : new_node->init(parent_dir, is_directory);
-    }
-    return exit_code::no_such_file_or_directory;
+        return (! new_node) ? exit_code::out_of_memory
+                            : new_node->init(parent_dir, is_directory);
+    } else
+        return exit_code::no_such_file_or_directory;
 }
 
 inline exit_code quarkie::create_file(const char* path) {
@@ -51,7 +49,7 @@ exit_code quarkie::change_offset(const int fd, const uint new_offset) {
         return exit_code::unit_is_closed;
         /* NOTE: perhaps `unit_is_closed` is a bad naming. If file does not
          * exist, the function will say that file isnt open, thereby assuming it
-         * exists but was not open?.. */
+         * exists but was not open yet?.. */
     } else if (target->fdescriptor_node->is_directory) {
         return exit_code::not_a_file;
     }
@@ -62,14 +60,21 @@ exit_code quarkie::change_offset(const int fd, const uint new_offset) {
 
 exit_code quarkie::read_dir(const int fd, quarkie::file_info* buffer) {
     file_entry* item = search_openfiles_table(fd);
+    // 1. Directory is not open (could not find in the OFT)
     if (! item) return exit_code::unit_is_closed;
-
+    // 2. Directory was not open with "read" bit set to 1.
     if ((uint8_t) quarkie::modes::read & item->access_mode) {
-        buffer->name =
-            reinterpret_cast<const char*>(item->next_item_to_read->name);
-        buffer->size = 0;
+        // 3. Directory is empty or all the units were already read.
+        if (item->next_item_to_read == nullptr) {
+            buffer->name = nullptr;
+        } else {
+            buffer->name =
+                reinterpret_cast<const char*>(item->next_item_to_read->name);
+            item->next_item_to_read = item->next_item_to_read->next_node;
+        }
         return exit_code::success;
     } else {
+        // directory was not open with read access mode
         return exit_code::access_forbidden;
     }
 }

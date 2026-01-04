@@ -3,7 +3,9 @@
 
 #include <common_api.hxx>
 #include <file.hxx>
+#include <free_space_tracker.hxx>
 #include <superblock.hxx>
+
 using namespace quarkie;
 
 exit_code node::init(node* parent_ptr, bool dir_indicator) {
@@ -52,38 +54,16 @@ exit_code node::cleanup_file_space() {
         return exit_code::not_a_file;
 
     else if (this->fragmented) {
-        auto meta =
-            sb.external_interface->read_blocks(data.more_descriptors, 1);
-        const auto size = *(uint*) meta;
-        if (size <= 0) {
-            // TODO: handle error
-        }
-        auto* records = (range*) (((uint*) meta) + 1);
-        for (uint i = 0; i < size; ++i) {
-            mark_free(records[i]);
-        }
-
-        mark_free(data.more_descriptors, 1);
-
+        free_space::meta_sector meta;
+        sb.external_interface->read_blocks(reinterpret_cast<char*>(&meta),
+                                           data.more_descriptors, 1);
     } else {
         for (range& r : data.descriptors) {
             mark_free(r);
-            r.len = 0;
+            r.length = 0;
         }
     }
     return exit_code::success;
-}
-
-// TODO:
-exit_code quarkie::create_file(const char* path) {
-    node* parent_dir = &sb.root;
-
-    node* new_file = sb.node_allocator.give_slot();
-    if (new_file == nullptr) {
-        return exit_code::out_of_memory;
-    }
-
-    return new_file->init(parent_dir);
 }
 
 exit_code node::remove_child(const int id, bool dir) {

@@ -1,21 +1,17 @@
 #ifndef SPACE_TRACKER_CPP
 #define SPACE_TRACKER_CPP
-#include <climits>
 #include <common_api.hxx>
 #include <free_space_tracker.hxx>
+#include <superblock.hxx>
 
-namespace quarkie {
-
-struct meta_sector {
-    long is_free : 1;
-    const long signature : sizeof(long) * CHAR_BIT - 1 = 0xace0;
-
-    constexpr static uint capacity =
-        sector_size / sizeof(range) - sizeof(long) - sizeof(uint);
-    range descriptors[capacity];
-    uint size = 0;  // Current count of records.
-    meta_sector() = default;
-};
+void free_space_init(const sector_no sectors_to_split) {
+    const meta_sector empty;
+    for (sector_no curr = 0; curr < sectors_to_split;
+         curr += sectors_per_subarea) {
+        sb.external_interface->write_blocks(
+            reinterpret_cast<const char*>(&empty), curr, 1);
+    }
+}
 
 }  // namespace quarkie
 

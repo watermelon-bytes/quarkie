@@ -1,7 +1,7 @@
 #ifndef STRING_UTILS_HXX
 #define STRING_UTILS_HXX
 
-// Avoid `#include`s
+// Trying to avoid `#include`s
 namespace quarkie {
 class node;
 };

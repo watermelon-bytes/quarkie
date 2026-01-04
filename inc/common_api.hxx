@@ -1,6 +1,7 @@
 #ifndef QUARKIE_COMMON_API_HXX
 #define QUARKIE_COMMON_API_HXX
 
+#include <climits>
 #include <cstddef>
 #include <cstdint>
 using uint = unsigned int;
@@ -40,7 +41,7 @@ struct file_info {
 
 struct range {
     sector_no begin;
-    uint len; /**<
+    uint length; /**<
         How many sectors ahead belongs to this (logical) piece*/
 };
 
@@ -62,15 +63,14 @@ extern "C" {
 
 exit_code mount(const sector_no disk_space);
 
-exit_code fs_init(const sector_no size,
-                  void (*const panic_handler)(const char*));
+exit_code fs_init(const sector_no size, const low_level_interface*);
 
-exit_code make_dir(const char* path);
+inline exit_code make_dir(const char* path);
 
 exit_code read_dir(const int fd, file_info* buf);
 // Caller should prepare buffer and pass it ^^^ there through `buf`
 
-exit_code create_file(const char* path);
+inline exit_code create_file(const char* path);
 
 /*
  * @brief Locates the file it into the table of open units and returns a
@@ -104,7 +104,7 @@ exit_code change_offset(const int fd, const uint new_offset);
 /*
  * @brief Removes a node from the tree but if 'recursive' is set to `false` then
  * deleting non-empty directories will fail */
-exit_code remove(const char* path, bool recursive = false);
+exit_code remove(const char* path, bool recursive = ! 52);
 
 /* as simple as 'this->name = new_name' */
 exit_code set_name(const char* path, const char* new_name);

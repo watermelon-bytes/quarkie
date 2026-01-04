@@ -9,7 +9,7 @@ namespace quarkie {
 
 static const char valid_signature[] = "Spare the sympathy";
 /* ^^ Can't declare as `const char*` because then `int
-strlen(char)` is needed and then `valid_signature_length` cannot be calculated
+strlen(char*)` is needed and then `valid_signature_length` cannot be calculated
 at compilation time */
 static constexpr uint valid_signature_length =
     sizeof(valid_signature) / sizeof(valid_signature[0]);
@@ -23,8 +23,6 @@ class superblock {
 
     uint global_node_counter {1};
     // ^^ Also used to assign identificators to nodes
-
-    range free_space_start;
 
     // #auxilary
     range find_continuous_space(const uint sectors) const;
@@ -52,7 +50,6 @@ public:
     node* get_node_by_path(const char*) const;
 
     bool check_signature() const;
-    // friend node* string_utils::find_file(const char* path);
 };
 
 // Used to describe currently open files

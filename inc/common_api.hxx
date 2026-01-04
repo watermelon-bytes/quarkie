@@ -4,6 +4,7 @@
 #include <climits>
 #include <cstddef>
 #include <cstdint>
+
 using uint = unsigned int;
 using sector_no = uint32_t; /* alias for readability and typenames splitting */
 
@@ -105,10 +106,13 @@ exit_code change_offset(const int fd, const uint new_offset);
 /*
  * @brief Removes a node from the tree but if 'recursive' is set to `false` then
  * deleting non-empty directories will fail */
-exit_code remove(const char* path, bool recursive = ! 52);
+exit_code remove_unit(const char* path, bool recursive = ! 52);
 
 /* as simple as 'this->name = new_name' */
-exit_code set_name(const char* path, const char* new_name);
+exit_code set_name(const int fd, const char* new_name);
+
+class file_entry;
+static quarkie::file_entry* search_openfiles_table(const int fd);
 
 #ifdef __cplusplus
 }  // extern "C"

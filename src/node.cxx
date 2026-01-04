@@ -1,9 +1,8 @@
 #ifndef NODE_CPP
 #define NODE_CPP
 
-#include <common_api.hxx>
-#include <file.hxx>
 #include <free_space_tracker.hxx>
+#include <parser.hxx>
 #include <superblock.hxx>
 
 using namespace quarkie;
@@ -13,12 +12,13 @@ exit_code node::init(node* parent_ptr, bool dir_indicator) {
     if (! mother) {
         sb.external_interface->fs_panic(
             exit_code::invalid_parental_dir,
-            "error: `node` cannot be initialized without a parent directory");
+            "error: a unit cannot be initialized without a parent directory");
         return exit_code::invalid_parental_dir;
     }
 #ifdef DEBUG
     if (parent_ptr == this) {
-        cout << "[warning] node with pointer to itself created" << endl;
+        cout << __PRETTY_FUNCTION__
+             << ": [warning] node with pointer to itself created" << endl;
     }
 #endif
 
@@ -79,7 +79,7 @@ exit_code node::remove_child(const int id, bool dir) {
 
         this->data.children.eldest_child = prev;
         if (prev) prev->next_node = curr->next_node;
-
+        sb.node_allocator.free_slot(curr);
         return exit_code::success;
     }
 

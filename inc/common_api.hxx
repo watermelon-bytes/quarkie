@@ -13,6 +13,7 @@ enum class exit_code : int8_t {
     success = 0,
     no_such_file_or_directory = 3,
     access_forbidden = 8,
+    already_exists = 7,
     non_empty_folder = 11,
     not_a_directory = 9,
     not_a_file = 10,

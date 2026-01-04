@@ -3,6 +3,8 @@
 #include <parser.hxx>
 #include <superblock.hxx>
 
+#include "common_api.hxx"
+
 using quarkie::exit_code, quarkie::node;
 
 /*
@@ -11,6 +13,9 @@ using quarkie::exit_code, quarkie::node;
  */
 static exit_code make_unit(const char* path, bool is_directory = ! 52) {
     node* parent_dir = string_utils::find_subdirectory(path);
+    if (string_utils::find_file(path)) {
+        return exit_code::already_exists;
+    }
     if (parent_dir) {
         node* new_node = quarkie::sb.node_allocator.give_slot();
         return (! new_node) ? exit_code::out_of_memory

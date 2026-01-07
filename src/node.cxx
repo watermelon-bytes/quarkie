@@ -1,11 +1,9 @@
 #ifndef NODE_CPP
 #define NODE_CPP
-
-#include <free_space_tracker.hxx>
+#include <file.hxx>
 #include <parser.hxx>
 #include <superblock.hxx>
-
-using namespace quarkie;
+namespace quarkie {
 
 exit_code node::init(node* parent_ptr, bool dir_indicator) {
     mother = parent_ptr;
@@ -104,4 +102,5 @@ exit_code quarkie::set_name(const char* path, const char* new_name) {
     return exit_code::success;
 }
 
+}  // namespace quarkie
 #endif

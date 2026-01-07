@@ -1,10 +1,8 @@
 #ifndef SUPERBLOCK_HXX
 #define SUPERBLOCK_HXX
-#include <uchar.h>
-
 #include <bitmap/bitmap.hxx>
 #include <file.hxx>
-
+#include <quarkie_defs.hxx>
 namespace quarkie {
 
 static const char valid_signature[] = "Spare the sympathy";
@@ -15,10 +13,10 @@ static constexpr uint valid_signature_length =
     sizeof(valid_signature) / sizeof(valid_signature[0]);
 
 class superblock {
-    char8_t signature[valid_signature_length + 1];
+    u8 signature[valid_signature_length + 1];
     /**< A kind of FS identificator */
     // static int8_t sector_size;
-    uint16_t block_size;
+    u16 block_size;
     sector_no total_blocks;
 
     uint global_node_counter {1};

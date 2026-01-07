@@ -1,29 +1,32 @@
 #ifndef FILE_H
 #define FILE_H
-
 #include <common_api.hxx>
-
 namespace quarkie {
 
+struct disk_address {
+    sector_no block;
+    u16 offset : 13;  // Assuming that block isnt larger than 4KB
+};
+
 struct node {
-    uint8_t is_directory : 1;
+    u8 is_directory : 1;
     /**< Node type: either directory (when set to 1) or file (clear) */
 
-    uint8_t readonly : 1;
+    u8 readonly : 1;
     /**< "Write" operations permissions global status (doesn't depend on how the
      * file was open) Doesn't mean anything for a directory.
      */
 
-    uint8_t fragmented : 1;
+    u8 fragmented : 1;
     /**<
      * If set to 0, then all metadata is contained in
      * `data.descriptors`. Otherwise when sectors descriptors dont
      * fit in 'data.descriptors' it means that reading from
      * 'data.more_sectors' is needed */
 
-    uint8_t : 0; /* reserved */
+    u8 : 0; /* reserved */
 
-    int32_t identificator; /* speed up searching*/
+    i32 identificator; /* speed up searching*/
 
     constexpr static uint max_name_len = 32;
     /* 32 should be enough for simplicity */
@@ -62,7 +65,7 @@ struct node {
     exit_code add_child(node*);  // approximately: this->eldest_child = node;
     exit_code change_parent(node*);
 
-    exit_code remove_child(const int32_t, bool);
+    exit_code remove_child(const i32, bool);
     exit_code remove_child_by_ptr(node*);
 
     exit_code cleanup_file_space();  // #auxilary for: remove_child

@@ -1,10 +1,7 @@
 #ifndef STRING_UTILS_HXX
 #define STRING_UTILS_HXX
 
-// Trying to avoid `#include`s
-namespace quarkie {
-class node;
-};
+#include <quarkie_defs.hxx>
 
 // Functions defined in this namespace serve as a layer between input request
 // and filsystem itself. They cast human-readable paths to structures readable
@@ -13,7 +10,7 @@ namespace string_utils {
 
 struct word {
     const char* pointer;
-    unsigned short size;
+    u16 size;
 
     inline bool operator==(const word& that) const {
         return ! __builtin_memcmp(this, &that, this->size);

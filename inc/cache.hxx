@@ -1,7 +1,7 @@
 #ifndef QUARKIE_CACHE_HXX
 #define QUARKIE_CACHE_HXX
 
-#include <bitmap/bitmap.hxx>
+#include <bitmap/basic_bitmap.hxx>
 #include <common_api.hxx>
 #include <cstdint>
 #include <free_space_tracker.hxx>
@@ -23,11 +23,11 @@ constexpr uint cache_size = 100;
  * necessary block will be loaded to the free slot from the secondary storage.
  */
 class cache {
+    basic_bitmap<cache_size> state;
+    /**< To check the status of the cache content */
     bool check_cache_hit(const sector_no) const;
-
+    sector_no indeces[cache_size];  // Which
 public:
-    bitmap<raw_sector, cache_size> node_allocator;
-    sector_no numbers[cache_size];
     raw_sector* load_sector(const sector_no);
 };
 

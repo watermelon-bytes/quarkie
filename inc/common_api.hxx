@@ -1,12 +1,7 @@
 #ifndef QUARKIE_COMMON_API_HXX
 #define QUARKIE_COMMON_API_HXX
 
-#include <climits>
-#include <cstddef>
-#include <cstdint>
-
-using uint = unsigned int;
-using sector_no = uint32_t; /* alias for readability and typenames splitting */
+#include <quarkie_defs.hxx>
 
 namespace quarkie {
 

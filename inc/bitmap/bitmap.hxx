@@ -1,12 +1,12 @@
 #ifndef BITMAP_HPP
 #define BITMAP_HPP
-
-#include <sys/types.h>
-
 #include <climits>
-#include <cstdint>
+#include <quarkie_defs.hxx>
+
 #define DEBUG
+
 #ifdef DEBUG
+
     #include <bitset>
     #include <cassert>
     #include <iostream>
@@ -35,8 +35,8 @@ class bitmap {
     // sizeof(slot) may be a large number.
 
     struct {
-        short position : sizeof(short) * CHAR_BIT - 3;
-        short offset : 3;
+        i16 position : sizeof(i16) * CHAR_BIT - 3;
+        i16 offset : 3;
     } last_freed_bit {0, 0};
     /* ^^^^^^^ save here information about what was freed last time
      * to speed up allocating*/
@@ -64,7 +64,7 @@ template <typename t, uint slots_count>
 quarkie::bitmap<t, slots_count>::bitmap() {
     reset();
 
-    constexpr auto extra_slots = slots_count % CHAR_BIT;
+    constexpr u8 extra_slots = slots_count % CHAR_BIT;
     if constexpr (extra_slots > 0) {
         bits[bitmap_size - 1] |= CHAR_MAX >> extra_slots;
     }

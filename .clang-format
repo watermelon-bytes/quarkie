@@ -6,7 +6,6 @@ AccessModifierOffset: -4
 PointerAlignment: Left 
 
 AlignTrailingComments: true
-IndentPPDirectives: BeforeHash
 
 SpaceAfterCStyleCast: true 
 SpaceAfterLogicalNot: true

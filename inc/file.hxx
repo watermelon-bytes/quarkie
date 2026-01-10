@@ -26,6 +26,11 @@ struct node {
 
     u8 : 0; /* reserved */
 
+    constexpr static char valid_signature[] = "QUARKIE_NODE";
+    constexpr static auto valid_signature_length =
+        sizeof(valid_signature) / sizeof(char);
+    char signature[valid_signature_length];
+
     i32 identificator; /* speed up searching*/
 
     constexpr static uint max_name_len = 32;
@@ -33,9 +38,9 @@ struct node {
     char name[max_name_len];
 
     // directory-parent
-    node* mother;  // (for "/" it equals to `this`)
+    disk_address mother;  // (for "/" it equals to `this`)
 
-    node* next_node;
+    disk_address next_node;
     /**< Next node in the current directory (files inside single
      * directory are implemented as a linked list). May be
      * either file or directory*/
@@ -43,11 +48,11 @@ struct node {
     /*===================================================================*/
     union {
         struct {
-            node* eldest_child; /**<
+            disk_address eldest_child; /**<
             Stores a pointer to the head of the linked list of located here file
             descriptors */
 
-            node* first_subdir; /**< For a File: Stores linked list
+            disk_address first_subdir; /**< For a File: Stores linked list
                                    subdirectories. */
         } children;
         /*================================================================*/
@@ -62,6 +67,8 @@ struct node {
         should be used directly returning from common FS API functions (like
        `create_file`, see signatures in `common_api.hxx`) */
 
+    // By accepting a pointer to node*, we assume that the data is already
+    // loaded into RAM
     exit_code add_child(node*);  // approximately: this->eldest_child = node;
     exit_code change_parent(node*);
 

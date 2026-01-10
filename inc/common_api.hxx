@@ -30,8 +30,8 @@ enum class modes : uint8_t {
 struct file_info {
     const char* name;
     uint size;
-    // time_t last_modified, created; // <- time_t comes from stdlib
-    // (non-freestanding code)
+    // time_t last_modified, created; // <- the `time_t` type comes from stdlib
+    // (we require freestanding compilation)
 };
 
 /* NOTE: All blocks numbers and addresses are relative to the superblock */

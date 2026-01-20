@@ -1,0 +1,9 @@
+*.cmake
+build/
+
+# This header is invented to store the python script 
+test_data.h
+
+# Object dumps
+*dump*
+*.asm

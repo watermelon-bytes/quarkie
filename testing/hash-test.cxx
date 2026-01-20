@@ -1,7 +1,8 @@
+#include <hash_table/hash.h>
+
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
-#include <hash_table/hash.hxx>
 #include <iomanip>
 #include <iostream>
 #include <vector>
@@ -38,7 +39,8 @@ bool strict_collision_check() {
     std::cout << "\nStrict collision check on large generated set ("
               << large_collision_test_set.size() << " entries)...\n";
 
-    std::vector<std::tuple<int32_t, uint16_t, const char*>> results;
+    std::vector<std::tuple<uint64_t, uint16_t, const char*, const char*>>
+        results;
     results.reserve(large_collision_test_set.size());
 
     std::cout << "\nAll computed hashes:\n";
@@ -51,20 +53,18 @@ bool strict_collision_check() {
     for (const auto& [data, len, name] : large_collision_test_set) {
         int32_t h = quarkie::hash(data, len);
 
-        // Логируем каждый хэш сразу
         std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')
                   << static_cast<uint32_t>(h) << "   " << std::dec
                   << std::setw(4) << len << "   "
                   << "\"" << name << "\"\n";
 
-        results.emplace_back(h, len, name);
+        results.emplace_back(h, len, name, data);
     }
 
     std::cout
         << "------------------------------------------------------------\n";
     std::cout << "Total computed: " << results.size() << "\n\n";
 
-    // Сортировка для поиска коллизий
     std::sort(results.begin(), results.end());
 
     size_t collision_count = 0;
@@ -73,10 +73,10 @@ bool strict_collision_check() {
     std::cout << "Collisions (if any):\n";
 
     for (size_t i = 1; i < results.size(); ++i) {
-        auto [h1, len1, name1] = results[i - 1];
-        auto [h2, len2, name2] = results[i];
+        auto [h1, len1, name1, data1] = results[i - 1];
+        auto [h2, len2, name2, data2] = results[i];
 
-        if (h1 == h2) {
+        if (h1 == h2 && data1 != data2) {
             if (! has_collision) {
                 std::cout << "-------------------------------------------------"
                              "-----------\n";
@@ -88,7 +88,8 @@ bool strict_collision_check() {
             std::cout << "Collision at 0x" << std::hex << std::setw(8)
                       << std::setfill('0') << static_cast<uint32_t>(h1)
                       << ":\n";
-            std::cout << "  " << std::dec << len1 << "  \"" << name1 << "\"\n";
+            std::cout << "input: " << "  " << std::dec << len1 << "  \""
+                      << name1 << "\"\n";
             std::cout << "  " << std::dec << len2 << "  \"" << name2 << "\"\n";
         }
     }

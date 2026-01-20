@@ -8,64 +8,64 @@ struct disk_address {
     u16 offset : 13;  // Assuming that block isnt larger than 4KB
 };
 
+template <uint sector_size>
+struct [[gnu::packed]] directory_content {
+    sector_no next;
+    constexpr static auto max_name_len = 32;
+    constexpr static uint capacity =
+        (sector_size - sizeof(sector_no)) / max_name_len;
+    char names[max_name_len][capacity];
+};
+
+struct directory {
+    sector_no next;
+    constexpr static auto max_name_len = 32;
+    constexpr static uint capacity = 10;
+
+    struct {
+        char name[max_name_len];
+        disk_address addr;
+    } items[capacity];
+};
+
+struct file {
+    u8 big : 1;
+    union {
+        struct {
+            u8 fragmented : 1;
+            range descriptors[28];
+            sector_no more_descriptors;
+        } meta;
+        char small_file[235];
+    };
+    exit_code cleanup_file_space();  // #auxilary for: remove_child
+};
+
 struct node {
+    constexpr static char valid_signature[] = "QUARKIE_NODE";
+    constexpr static auto valid_signature_length =
+        sizeof(valid_signature) / sizeof(char);
+    char signature[valid_signature_length];
+    uint size_bytes;
+    i32 identificator; /* speed up searching*/
+
     u8 is_directory : 1;
-    /**< Node type: either directory (when set to 1) or file (clear) */
+    /**< Node type: either directory (when set to 1) or file (clear). Checking
+     * this bit is necessary before reading bits of the union below. */
 
     u8 readonly : 1;
     /**< "Write" operations permissions global status (doesn't depend on how the
      * file was open) Doesn't mean anything for a directory.
      */
 
-    u8 fragmented : 1;
-    /**<
-     * If set to 0, then all metadata is contained in
-     * `data.descriptors`. Otherwise when sectors descriptors dont
-     * fit in 'data.descriptors' it means that reading from
-     * 'data.more_sectors' is needed */
-
-    u8 : 0; /* reserved */
-
-    constexpr static char valid_signature[] = "QUARKIE_NODE";
-    constexpr static auto valid_signature_length =
-        sizeof(valid_signature) / sizeof(char);
-    char signature[valid_signature_length];
-
-    i32 identificator; /* speed up searching*/
-
-    constexpr static uint max_name_len = 32;
-    /* 32 should be enough for simplicity */
-    char name[max_name_len];
-
-    // directory-parent
-    disk_address mother;  // (for "/" it equals to `this`)
-
-    disk_address next_node;
-    /**< Next node in the current directory (files inside single
-     * directory are implemented as a linked list). May be
-     * either file or directory*/
-
-    /*===================================================================*/
     union {
-        struct {
-            disk_address eldest_child; /**<
-            Stores a pointer to the head of the linked list of located here file
-            descriptors */
-
-            disk_address first_subdir; /**< For a File: Stores linked list
-                                   subdirectories. */
-        } children;
-        /*================================================================*/
-        range descriptors[4]; /* For a File: descriptors of the space where the
-                               * bits of the file are stored. */
-        sector_no more_descriptors;
-        /**< The sector that contains just ranges (extended for a File).  */
-    } data;
-    /*===================================================================*/
+        directory dir;
+        file f;
+    };
 
     /*NOTE: These public methods all return `exit_code` because their result
-        should be used directly returning from common FS API functions (like
-       `create_file`, see signatures in `common_api.hxx`) */
+    should be used directly returning from common FS API functions (like
+   `create_file`, see signatures in `common_api.hxx`) */
 
     // By accepting a pointer to node*, we assume that the data is already
     // loaded into RAM
@@ -74,8 +74,6 @@ struct node {
 
     exit_code remove_child(const i32, bool);
     exit_code remove_child_by_ptr(node*);
-
-    exit_code cleanup_file_space();  // #auxilary for: remove_child
 
     void set_readonly(bool);  // #auxilary for: make_readonly
 

@@ -95,8 +95,8 @@ exit_code make_readonly(const char* path) {
     return exit_code::success;
 }
 
-exit_code quarkie::set_name(const char* path, const char* new_name) {
-    node* target = string_utils::find_file(path);
+exit_code quarkie::set_name(const char* str, const char* new_name) {
+    node* target = string_utils::find_file(str);
     __builtin_strcpy((char*) &target->name, new_name);
 
     return exit_code::success;

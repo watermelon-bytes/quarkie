@@ -1,5 +1,6 @@
 #ifndef SPACE_TRACKER_HPP
 #define SPACE_TRACKER_HPP
+#include <bitmap/bitmap.hxx>
 #include <common_api.hxx>
 
 namespace quarkie {
@@ -15,16 +16,26 @@ struct meta_sector {
 
     constexpr static uint capacity =
         sector_size / sizeof(range) - sizeof(long) - sizeof(uint);
-    range descriptors[capacity];
+    bitmap<range, capacity> descriptors;
+
+    static constexpr uint sectors_per_subarea = capacity * 2 - 1;
+    // I am too lazy to use a calculator
+    // But akschually its a compile time feature 🤌
+
     uint size = 0;  // Current count of records.
     meta_sector() : is_free(1), signature(0xace0) {}
 };
 
+struct global_metadata {
+    uint subarea_size_in_blocks;
+    uint total_subareas;
+
+    bool check_health();
+    explicit global_metadata();
+};
+
 static_assert(sizeof(meta_sector) <= sector_size,
               "[error] meta_sector doesn't fit into a disk sector");
-constexpr uint sectors_per_subarea =
-    meta_sector::capacity * 2 - 1;  // I am too lazy to use a calculator
-// But akschually its a compile time feature 🤌
 
 }  // namespace free_space
 }  // namespace quarkie

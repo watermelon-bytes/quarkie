@@ -1,6 +1,9 @@
 #ifndef FILE_H
 #define FILE_H
 #include <common_api.hxx>
+
+#include "bitmap/bitmap.hxx"
+#include "quarkie_defs.hxx"
 namespace quarkie {
 
 struct disk_address {
@@ -8,32 +11,39 @@ struct disk_address {
     u16 offset : 13;  // Assuming that block isnt larger than 4KB
 };
 
-template <uint sector_size>
-struct [[gnu::packed]] directory_content {
-    sector_no next;
-    constexpr static auto max_name_len = 32;
-    constexpr static uint capacity =
-        (sector_size - sizeof(sector_no)) / max_name_len;
-    char names[max_name_len][capacity];
+struct directory_item {
+    u32 hashed;
+    disk_address pointer;
 };
 
-struct directory {
-    sector_no next;
-    constexpr static auto max_name_len = 32;
-    constexpr static uint capacity = 10;
+struct directory_node_t {
+    // sector_no next;
+    constexpr static uint max_name_len = 64, capacity = 18;
 
-    struct {
-        char name[max_name_len];
-        disk_address addr;
-    } items[capacity];
+    u16 count;
+    range full_names_infosector;
+    pool<directory_item, capacity> items;
+
+    directory_node_t() : count(0) {}
 };
 
-struct file {
+struct directory_content {
+    static constexpr auto sector_size = 512;
+    static constexpr u16 capacity =
+        (sector_size - sizeof(u16)) / directory_node_t::max_name_len;
+    static constexpr u16 valid_signature = 0xC8DC;
+    u16 signature = valid_signature;
+    // sector_no next;
+    char names[directory_node_t::max_name_len][capacity];
+};
+
+struct file_node_t {
+    uint size_in_bytes;
     u8 big : 1;
     union {
         struct {
             u8 fragmented : 1;
-            range descriptors[28];
+            range descriptors[24];
             sector_no more_descriptors;
         } meta;
         char small_file[235];
@@ -42,12 +52,9 @@ struct file {
 };
 
 struct node {
-    constexpr static char valid_signature[] = "QUARKIE_NODE";
-    constexpr static auto valid_signature_length =
-        sizeof(valid_signature) / sizeof(char);
-    char signature[valid_signature_length];
-    uint size_bytes;
-    i32 identificator; /* speed up searching*/
+    static constexpr u16 valid_signature = 0xC8AE;
+    u16 signature = valid_signature;
+    i32 id; /* speed up searching*/
 
     u8 is_directory : 1;
     /**< Node type: either directory (when set to 1) or file (clear). Checking
@@ -59,8 +66,8 @@ struct node {
      */
 
     union {
-        directory dir;
-        file f;
+        directory_node_t dir;
+        file_node_t file;
     };
 
     /*NOTE: These public methods all return `exit_code` because their result
@@ -73,7 +80,6 @@ struct node {
     exit_code change_parent(node*);
 
     exit_code remove_child(const i32, bool);
-    exit_code remove_child_by_ptr(node*);
 
     void set_readonly(bool);  // #auxilary for: make_readonly
 
@@ -83,6 +89,8 @@ struct node {
     * friend exit_code quarkie::set_name(const char* path, const char*
     new_name); */
 };
+static_assert(sizeof(node) <= 256,
+              "Size of `node` must not be greater than 256.");
 
 }  // namespace quarkie
 

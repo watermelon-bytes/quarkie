@@ -5,15 +5,9 @@
 #include <quarkie_defs.hxx>
 namespace quarkie {
 
-static const char valid_signature[] = "Spare the sympathy";
-/* ^^ Can't declare as `const char*` because then `int
-strlen(char*)` is needed and then `valid_signature_length` cannot be calculated
-at compilation time */
-static constexpr uint valid_signature_length =
-    sizeof(valid_signature) / sizeof(valid_signature[0]);
-
 class superblock {
-    u8 signature[valid_signature_length + 1];
+    static constexpr u32 valid_signature = 0xCB7AD;
+    u32 signature;
     /**< A kind of FS identificator */
     // static int8_t sector_size;
     u16 block_size;
@@ -34,7 +28,6 @@ public:
     /* NOTE: This allocator should be used to a sort of dynamically manage nodes
      * and must be the only way how nodes are created. */
     constexpr static uint nodes_limit = 1000;
-    quarkie::bitmap<node, nodes_limit> node_allocator;
 
     node root;
 
@@ -64,7 +57,7 @@ struct file_entry {
 };
 
 constexpr static uint max_open_files = 50;
-extern quarkie::bitmap<file_entry, max_open_files> open_files_table;
+extern quarkie::pool<file_entry, max_open_files> open_files_table;
 
 extern superblock sb;
 

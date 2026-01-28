@@ -4,6 +4,7 @@
 #include <sys/types.h>
 
 #include <climits>
+#include <quarkie_defs.hxx>
 namespace quarkie {
 
 inline constexpr static ulong div_and_ceil(ulong a, ulong b) {
@@ -14,40 +15,52 @@ struct div_t {
     uint quot, rem;
 };
 
-inline constexpr static div_t _div(uint x, uint y) { return {x / y, x % y}; }
+inline constexpr static div_t _div(uint x, uint y) {
+    return {.quot = x / y, .rem = x % y};
+}
 
 template <uint slots_count>
-class basic_bitmap {
+struct basic_bitmap {
     constexpr static ulong bitmap_size = div_and_ceil(slots_count, CHAR_BIT);
-    u_char bits[bitmap_size];
+    u8 map[bitmap_size];
 
-public:
-    void swith_bit(const uint index, const bool value);
+    void set_bit(const uint index, const bool value);
     [[gnu::always_inline]] inline void enable_bit(const uint);
     [[gnu::always_inline]] inline void clear_bit(const uint);
-    constexpr explicit basic_bitmap<slots_count>();
+    constexpr basic_bitmap<slots_count>();
 };
 
 template <uint slots_count>
-void basic_bitmap<slots_count>::swith_bit(const uint index, const bool value) {
-    const div_t byte_and_offset = _div(index, CHAR_BIT);
-    if (byte_and_offset.quot >= bitmap_size) {
-        return;
-    }
-    const u_char necessary_bit = (1 << byte_and_offset.rem);
-    bits[byte_and_offset.quot] =
-        (value == ! 52) ? bits[byte_and_offset.quot] | necessary_bit
-                        : bits[byte_and_offset.quot] & (~necessary_bit);
+void basic_bitmap<slots_count>::set_bit(const uint index, const bool value) {
+    [[unlikely]] if (index >= bitmap_size) { return; }
+    // not sure that attribute "unlikely" is needed here
+
+    const auto [byte, bit_offset] = _div(index, CHAR_BIT);
+
+    u8 mask = ~(u8(1u) << bit_offset);
+    map[byte] &= mask; /* unset the target bit*/
+
+    map[byte] |= (value << bit_offset);
+    /* could've done this via simple if-statement though */
 }
 
 template <uint slots_count>
 inline void basic_bitmap<slots_count>::clear_bit(const uint bit) {
-    swith_bit(bit, not 52);
+    set_bit(bit, 0);
 }
 
 template <uint slots_count>
 inline void basic_bitmap<slots_count>::enable_bit(const uint bit) {
-    swith_bit(bit, 52);
+    set_bit(bit, 1);
+}
+
+template <uint slots_count>
+constexpr basic_bitmap<slots_count>::basic_bitmap() {
+    __builtin_memset(&map, 0, sizeof(map));
+    uint tail = slots_count % CHAR_BIT;
+    if (tail) {
+        map[bitmap_size - 1] |= CHAR_MAX >> tail;
+    }
 }
 
 };  // namespace quarkie

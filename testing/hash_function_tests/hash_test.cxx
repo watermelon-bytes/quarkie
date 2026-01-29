@@ -52,12 +52,6 @@ bool strict_collision_check() {
 
     for (const auto& [data, len, name] : large_collision_test_set) {
         int32_t h = quarkie::hash(data, len);
-
-        std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')
-                  << static_cast<uint32_t>(h) << "   " << std::dec
-                  << std::setw(4) << len << "   "
-                  << "\"" << name << "\"\n";
-
         results.emplace_back(h, len, name, data);
     }
 
@@ -89,8 +83,10 @@ bool strict_collision_check() {
                       << std::setfill('0') << static_cast<uint32_t>(h1)
                       << ":\n";
             std::cout << "input: " << "  " << std::dec << len1 << "  \""
-                      << name1 << "\"\n";
-            std::cout << "  " << std::dec << len2 << "  \"" << name2 << "\"\n";
+                      << name1 << "\"\n"
+                      << "data: " << "'" << data1 << "'\n";
+            std::cout << "  " << std::dec << len2 << "  \"" << name2 << "\"\n"
+                      << "data: " << "'" << data2 << "'\n";
         }
     }
 

@@ -16,7 +16,7 @@ struct meta_sector {
 
     constexpr static uint capacity =
         sector_size / sizeof(range) - sizeof(long) - sizeof(uint);
-    bitmap<range, capacity> descriptors;
+    pool<range, capacity> descriptors;
 
     static constexpr uint sectors_per_subarea = capacity * 2 - 1;
     // I am too lazy to use a calculator
@@ -31,7 +31,7 @@ struct global_metadata {
     uint total_subareas;
 
     bool check_health();
-    explicit global_metadata();
+    global_metadata();
 };
 
 static_assert(sizeof(meta_sector) <= sector_size,

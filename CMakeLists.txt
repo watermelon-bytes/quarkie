@@ -26,3 +26,5 @@ add_compile_options(quarkie_api PRIVATE # do not export compile options
     -Wall -Wextra -Osize -g
     -m64 -march=x86-64 -mtls-direct-seg-refs
 )
+
+add_subdirectory(testing/ )

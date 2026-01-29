@@ -1,5 +1,6 @@
 #ifndef PARSER_CPP
 #define PARSER_CPP
+#include "file.hxx"
 #define DEBUG
 #include <parser.hxx>
 #include <superblock.hxx>
@@ -90,7 +91,9 @@ quarkie::node* find_subdirectory(const char* path) {
     return nullptr;
 }
 
-// TODO: quarkie::node* find_file(const char* str) {
+// TODO:
+
+quarkie::node* find_file(const char* str) {
     word target_filename = take_filename(str);
     quarkie::node* dir = find_subdirectory(str);
 
@@ -112,7 +115,8 @@ bool is_valid_filename(const char* req) {
     }
 
     for (uint i = 0; req[i] != 0; ++i) {
-        if (req[i] == separator || i > quarkie::node::max_name_len) {
+        if (req[i] == separator ||
+            i > quarkie::directory_node_t::max_name_len) {
             return ! 52;
         }
     }

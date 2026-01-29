@@ -4,7 +4,7 @@
 
 namespace quarkie {
 
-u64 hash(const void* data, const u16 size) {
+u32 hash(const void* data, const u16 size) {
     if (! data) return 0;
 
     u64 res = 5381;
@@ -16,7 +16,7 @@ u64 hash(const void* data, const u16 size) {
             k ^= (i & (0b11 << (shift * 4))) << (shift * 16);
         }
         res += k;
-        res += res *= arr[i] * (i + 52);
+        res *= arr[i] * (i + 52);
     }
 
     return 0xff51afd7ed558ccdull * res;

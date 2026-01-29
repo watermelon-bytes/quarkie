@@ -56,7 +56,7 @@ t* pool<t, slots_count>::give_slot() {
         goto found_slot;
     }
 
-    for (uint i {0}; i < allocator_.bitmap_size; i += CHAR_BIT) {
+    for (uint i {0}; i < allocator_.bitmap_size; i += sizeof(u64) / CHAR_BIT) {
         u64 n;
         __builtin_memcpy(&n, &allocator_.map[i], sizeof(n));
         /* Case where all slots are borrowed */
@@ -86,7 +86,7 @@ void pool<t, slots_count>::free_slot(const t* ptr) {
     }
     auto block_ptr = (const byte_t* const) ptr;
     auto base_ptr = (byte_t*) &base; /* i love `auto` when rvalue is casted*/
-    long distance = block_ptr - base_ptr;
+    uint distance = block_ptr - base_ptr;
 
     /* Check alignment */
     if (distance % sizeof(t) || distance < 0) {
@@ -99,7 +99,7 @@ void pool<t, slots_count>::free_slot(const t* ptr) {
         return;
     }
 
-    long index = ptr - base;
+    uint index = ptr - base;
     allocator_.clear_bit(index);
     last_freed_bit_index_ = index;
     borrowed_slots_counter_--;

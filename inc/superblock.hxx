@@ -1,11 +1,11 @@
 #ifndef SUPERBLOCK_HXX
 #define SUPERBLOCK_HXX
-#include <bitmap/bitmap.hxx>
-#include <file.hxx>
+#include <common_api.hxx>
 #include <quarkie_defs.hxx>
+
 namespace quarkie {
 
-class superblock {
+struct superblock {
     static constexpr u32 valid_signature = 0xCB7AD;
     u32 signature;
     /**< A kind of FS identificator */
@@ -24,12 +24,11 @@ class superblock {
         return div_and_ceil(bytes_count, block_size);
     }
 
-public:
     /* NOTE: This allocator should be used to a sort of dynamically manage nodes
      * and must be the only way how nodes are created. */
     constexpr static uint nodes_limit = 1000;
 
-    node root;
+    disk_address root;
 
     const low_level_interface*
         external_interface; /**< The whole interface used by filesystem. Pointer

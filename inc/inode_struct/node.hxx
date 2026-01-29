@@ -1,9 +1,10 @@
 #ifndef FILE_H
 #define FILE_H
+#include <bitmap/pool.hxx>
 #include <common_api.hxx>
+#include <quarkie_defs.hxx>
 
-#include "bitmap/bitmap.hxx"
-#include "quarkie_defs.hxx"
+#include "superblock.hxx"
 namespace quarkie {
 
 struct disk_address {
@@ -30,7 +31,8 @@ struct directory_node_t {
 struct directory_content {
     static constexpr auto sector_size = 512;
     static constexpr u16 capacity =
-        (sector_size - sizeof(u16)) / directory_node_t::max_name_len;
+        (quarkie::superblock::block_size - sizeof(u16)) /
+        directory_node_t::max_name_len;
     static constexpr u16 valid_signature = 0xC8DC;
     u16 signature = valid_signature;
     // sector_no next;
@@ -52,7 +54,7 @@ struct file_node_t {
 };
 
 struct node {
-    static constexpr u16 valid_signature = 0xC8AE;
+    static constexpr u16 valid_signature = 0x7CAE;
     u16 signature = valid_signature;
     i32 id; /* speed up searching*/
 
@@ -83,14 +85,13 @@ struct node {
 
     void set_readonly(bool);  // #auxilary for: make_readonly
 
-    exit_code init(node* parent, bool directory = false);
+    exit_code init(disk_address parent, bool directory = false);
 
     /*friend string_utils::word string_utils::take_word(const char*);
     * friend exit_code quarkie::set_name(const char* path, const char*
     new_name); */
 };
-static_assert(sizeof(node) <= 256,
-              "Size of `node` must not be greater than 256.");
+static_assert(sizeof(node) <= 256, "Size of `node` greater than 256.");
 
 }  // namespace quarkie
 

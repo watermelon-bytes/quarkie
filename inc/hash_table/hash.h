@@ -4,7 +4,7 @@
 
 namespace quarkie {
 
-u64 hash(const void* data, const u16 size);
+u32 hash(const void* data, const u16 size);
 u64 hash_string(const char* data);
 
 }  // namespace quarkie

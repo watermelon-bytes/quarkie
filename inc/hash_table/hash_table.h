@@ -2,12 +2,14 @@
 #define HASH_TABLE_H
 #include <hash_table/hash.h>
 
+#include <file.hxx>
+
 namespace quarkie {
 
 class filenames_hash_table {
     struct {
-        u64 key;
-        disk_address value;
+        u64 hash_val;
+        disk_address addr;
     };
     bool lookup(const char*);
     bool insert(const char*);

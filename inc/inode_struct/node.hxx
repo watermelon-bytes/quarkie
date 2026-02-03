@@ -1,47 +1,13 @@
 #ifndef FILE_H
 #define FILE_H
-#include <bitmap/pool.hxx>
-#include <common_api.hxx>
-#include <quarkie_defs.hxx>
+#include <inode_struct/directory_node.hxx>
 
-#include "superblock.hxx"
 namespace quarkie {
-
-struct disk_address {
-    sector_no block;
-    u16 offset : 13;  // Assuming that block isnt larger than 4KB
-};
-
-struct directory_item {
-    u32 hashed;
-    disk_address pointer;
-};
-
-struct directory_node_t {
-    // sector_no next;
-    constexpr static uint max_name_len = 64, capacity = 18;
-
-    u16 count;
-    range full_names_infosector;
-    pool<directory_item, capacity> items;
-
-    directory_node_t() : count(0) {}
-};
-
-struct directory_content {
-    static constexpr auto sector_size = 512;
-    static constexpr u16 capacity =
-        (quarkie::superblock::block_size - sizeof(u16)) /
-        directory_node_t::max_name_len;
-    static constexpr u16 valid_signature = 0xC8DC;
-    u16 signature = valid_signature;
-    // sector_no next;
-    char names[directory_node_t::max_name_len][capacity];
-};
 
 struct file_node_t {
     uint size_in_bytes;
-    u8 big : 1;
+    u8 big : 1; /**< This bit is enabled when the `small_file` field must be
+                   used to read the file. */
     union {
         struct {
             u8 fragmented : 1;
@@ -64,32 +30,36 @@ struct node {
 
     u8 readonly : 1;
     /**< "Write" operations permissions global status (doesn't depend on how the
-     * file was open) Doesn't mean anything for a directory.
-     */
+     * file was open). */
 
+    // TODO: comment the followign fields for Doxygen
     union {
         directory_node_t dir;
         file_node_t file;
     };
 
     /*NOTE: These public methods all return `exit_code` because their result
-    should be used directly returning from common FS API functions (like
-   `create_file`, see signatures in `common_api.hxx`) */
+     * should be used directly returning from common FS API functions (like
+     *`create_file`, see signatures in `common_api.hxx`) */
 
     // By accepting a pointer to node*, we assume that the data is already
     // loaded into RAM
     exit_code add_child(node*);  // approximately: this->eldest_child = node;
     exit_code change_parent(node*);
 
-    exit_code remove_child(const i32, bool);
+    exit_code remove_child(const u32, bool);
 
-    void set_readonly(bool);  // #auxilary for: make_readonly
+    /* @brief Sets the bit `readonly` to what's passed in `val`. */
+    void set_readonly(bool val);
 
+    /*
+     *@brief Checks whether the object contains valid_signature. This function
+     * should be used to validate raw sectors. Takes a few cycles but ensures
+     * the correctness. (Maybe we should extend signature size to 64 bits?)
+     */
+    bool check_signature() const { return valid_signature == this->signature; }
     exit_code init(disk_address parent, bool directory = false);
-
-    /*friend string_utils::word string_utils::take_word(const char*);
-    * friend exit_code quarkie::set_name(const char* path, const char*
-    new_name); */
+    node() {}  // Constructors are EVIL
 };
 static_assert(sizeof(node) <= 256, "Size of `node` greater than 256.");
 

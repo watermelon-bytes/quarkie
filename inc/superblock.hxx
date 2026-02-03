@@ -30,8 +30,7 @@ struct superblock {
     disk_address root_node;
     free_space::global_metadata global_metadata_;
 
-    explicit superblock(const sector_no given_space,
-                        const low_level_interface*);
+    explicit superblock(const sector_no given_space);
     superblock() {}
 
     node* get_node_by_path(const char*) const;
@@ -49,11 +48,11 @@ struct file_entry {
 
 constexpr uint max_open_files = 50;
 extern quarkie::pool<file_entry, max_open_files> open_files_table;
-low_level_interface
+extern low_level_interface
     external_interface; /**< The whole interface used by filesystem. Pointer
                            is used for conviniency. */
 
-superblock sb;
+extern superblock sb;
 
 }  // namespace quarkie
 

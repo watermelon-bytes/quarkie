@@ -21,8 +21,15 @@ namespace quarkie {
 
 using sector_no = uint32_t;
 class node;
-struct disk_address;
+
+struct disk_address {
+    sector_no block;
+    u16 offset : 13;  // Assuming that block isnt larger than 4KB
+};
+
 struct div_t;
+
+constexpr uint sector_size = 512;
 
 }  // namespace quarkie
 

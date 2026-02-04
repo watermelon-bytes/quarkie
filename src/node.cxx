@@ -1,90 +1,19 @@
 #ifndef NODE_CPP
 #define NODE_CPP
-#include <file.hxx>
+#include <sys/types.h>
+
+#include <climits>
+#include <inode_struct/node.hxx>
 #include <parser.hxx>
 #include <superblock.hxx>
+
 namespace quarkie {
 
-exit_code node::init(node* parent_ptr, bool dir_indicator) {
-    mother = parent_ptr;
-    if (! mother) {
-        sb.external_interface->fs_panic(
-            exit_code::invalid_parental_dir,
-            "error: a unit cannot be initialized without a parent directory");
-        return exit_code::invalid_parental_dir;
-    }
-#ifdef DEBUG
-    if (parent_ptr == this) {
-        cout << __PRETTY_FUNCTION__
-             << ": [warning] node with pointer to itself created" << endl;
-    }
-#endif
-
-    if (parent_ptr->add_child(this) != exit_code::success) {
-        sb.external_interface->fs_panic(
-            exit_code::invalid_parental_dir,
-            "error: 'node' constructor: `parent_ptr` must point to a folder");
-        return exit_code::invalid_parental_dir;
-    }
-
-    is_directory = dir_indicator;
-#ifdef DEBUG
-    cout << "Node initialized" << endl;
-#endif
+exit_code node::init(disk_address parent_ptr, bool dir_indicator) {
     return exit_code::success;
 }
 
-exit_code node::add_child(node* son) {
-    if (this->is_directory) {
-        son->next_node = data.children.eldest_child;
-        data.children.eldest_child = son;
-        return exit_code::success;
-    }
-
-    return exit_code::not_a_directory;
-}
-
-exit_code mark_free(const range);
-exit_code mark_free(const sector_no start, const uint length);
-
-exit_code node::cleanup_file_space() {
-    if (this->is_directory)
-        return exit_code::not_a_file;
-
-    else if (this->fragmented) {
-        free_space::meta_sector meta;
-        sb.external_interface->read_blocks(reinterpret_cast<char*>(&meta),
-                                           data.more_descriptors, 1);
-    } else {
-        for (range& r : data.descriptors) {
-            mark_free(r);
-            r.length = 0;
-        }
-    }
-    return exit_code::success;
-}
-
-exit_code node::remove_child(const int id, bool dir) {
-    if (this->is_directory) {
-        node *prev = nullptr, *curr = dir ? data.children.eldest_child
-                                          : data.children.first_subdir;
-
-        while (curr != nullptr) {
-            prev = curr;
-            curr = curr->next_node;
-            if (curr->identificator == id) break;
-        }
-
-        this->data.children.eldest_child = prev;
-        if (prev) prev->next_node = curr->next_node;
-        sb.node_allocator.free_slot(curr);
-        return exit_code::success;
-    }
-
-    return exit_code::not_a_directory;
-}
-
-exit_code node::remove_child_by_ptr(node* ptr) {}
+exit_code node::remove_child(const u32 val, bool dir) {}
 
 // node* superblock::get_node_by_path(const char*) {}
 
@@ -95,11 +24,36 @@ exit_code make_readonly(const char* path) {
     return exit_code::success;
 }
 
-exit_code quarkie::set_name(const char* str, const char* new_name) {
-    node* target = string_utils::find_file(str);
-    __builtin_strcpy((char*) &target->name, new_name);
+error_or<disk_address> directory_node_t::lookup(const u32 hashed_target) {
+    u32 chunk;
+    bool zeroes_turn = 1;
 
-    return exit_code::success;
+    for (uint i = 0; i < items_capacity; i += sizeof(chunk) / CHAR_BIT) {
+        uint offset = 0;
+        __builtin_memcpy(&chunk, &items.allocator_.map[i], sizeof(chunk));
+        while (chunk != 0) {
+            uint leading_zeroes_count = __builtin_clz(chunk);
+            chunk <<= leading_zeroes_count;
+            offset += leading_zeroes_count;
+            if (zeroes_turn) {
+                // now we use leading_zeroes_count as loop counter
+                // because theres too many variables, so to avoid using stack
+                // and keeping all local variables in registers, we shouldn't
+                // add more counters just for beauty
+                while (leading_zeroes_count > 0) {
+                    uint const index = i + offset - leading_zeroes_count;
+                    if (hashed_target == items.base[index].hashed) {
+                        return error_or(items.base[index].pointer);
+                    }
+                    leading_zeroes_count--;
+                }
+            }
+            zeroes_turn = ~zeroes_turn;
+            chunk = ~chunk;
+        }
+    }
+
+    return error_or<disk_address>(exit_code::no_such_file_or_directory);
 }
 
 }  // namespace quarkie

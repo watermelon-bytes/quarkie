@@ -16,13 +16,18 @@ struct directory_item {
  */
 struct directory_node_t {
     // sector_no next;
-    constexpr static uint max_name_len = 64, capacity = 18;
+    constexpr static uint max_name_len = 64, items_capacity = 18;
 
     u16 count;
     range full_names_infosectors;
-    pool<directory_item, capacity> items;
+    pool<directory_item, items_capacity> items;
 
     directory_node_t() : count(0) {}
+    /*
+     * @brief Looks for hashed_target among the directory items.
+     * @return
+     */
+    error_or<disk_address> lookup(const u32 hashed_target);
 };
 
 /*

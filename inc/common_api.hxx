@@ -54,16 +54,6 @@ struct error_or {
     error_or(const returned_t v) : got_error(0), value(v) {}
     error_or(const exit_code e) : got_error(1), error_descriptor(e) {}
 
-    /*
-     * Interface:
-     * auto res = some_function(arg);
-     * if (! res.error_occured()) {
-     *      ... go ahead
-     * } else {
-     *      ... handle errors
-     * }
-     */
-
     // prevent declaration of error_or<exit_code>
     static_assert(! __is_same(returned_t, exit_code));
 };

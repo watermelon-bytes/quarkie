@@ -3,6 +3,7 @@
 
 #include <quarkie_defs.hxx>
 
+namespace quarkie {
 // Functions defined in this namespace serve as a layer between input request
 // and filsystem itself. They cast human-readable paths to structures readable
 // by the quarkie filsystem.
@@ -45,18 +46,22 @@ word take_directory(const char* path);
  * returned if no such file)
  * @param path Absolute path from superblock::root to the target.
  */
-quarkie::node* find_file(const char* path);
+quarkie::disk_address find_file(const char* path);
 
 /*
  * @brief
  *
  */
-quarkie::node* find_subdirectory(const char* path);
+disk_address find_subdirectory(const char* path, quarkie::disk_address* buffer);
 
+/*
+ * @
+ *
+ */
 bool is_valid_filename(const char* req);
 
 bool is_valid_path(const char* path);
 
 }  // namespace string_utils
-
+}  // namespace quarkie
 #endif

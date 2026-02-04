@@ -1,9 +1,5 @@
-#ifndef BASIC_BITMAP_HXX
-#define BASIC_BITMAP_HXX
-
-#include <sys/types.h>
-
-#include <climits>
+#ifndef QUARKIE_BASIC_BITMAP_HXX
+#define QUARKIE_BASIC_BITMAP_HXX
 #include <quarkie_defs.hxx>
 namespace quarkie {
 
@@ -27,6 +23,7 @@ struct basic_bitmap {
     void set_bit(const uint index, const bool value);
     [[gnu::always_inline]] inline void enable_bit(const uint);
     [[gnu::always_inline]] inline void clear_bit(const uint);
+    [[gnu::always_inline]] inline bool test_bit(const uint);
     constexpr basic_bitmap<slots_count>();
 };
 
@@ -37,7 +34,7 @@ void basic_bitmap<slots_count>::set_bit(const uint index, const bool value) {
 
     const auto [byte, bit_offset] = _div(index, CHAR_BIT);
 
-    u8 mask = ~(u8(1u) << bit_offset);
+    u8 mask = ~(u8(1) << bit_offset);
     map[byte] &= mask; /* unset the target bit*/
 
     map[byte] |= (value << bit_offset);
@@ -52,6 +49,12 @@ inline void basic_bitmap<slots_count>::clear_bit(const uint bit) {
 template <uint slots_count>
 inline void basic_bitmap<slots_count>::enable_bit(const uint bit) {
     set_bit(bit, 1);
+}
+
+template <uint slots_count>
+inline bool basic_bitmap<slots_count>::test_bit(const uint bit) {
+    [[unlikely]] if (bit >= bitmap_size) { return 0; }
+    return map[bit / CHAR_BIT] & (1 << bit % CHAR_BIT);
 }
 
 template <uint slots_count>

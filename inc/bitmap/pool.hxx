@@ -1,10 +1,7 @@
 #ifndef BITMAP_HPP
 #define BITMAP_HPP
-#include <sys/types.h>
 
 #include <bitmap/basic_bitmap.hxx>
-#include <climits>
-#include <quarkie_defs.hxx>
 
 #define DEBUG
 

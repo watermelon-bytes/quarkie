@@ -8,6 +8,7 @@ namespace quarkie {
 enum class exit_code : int8_t {
     success = 0,
     no_such_file_or_directory = 3,
+    wrong_signature = 4,
     access_forbidden = 8,
     already_exists = 7,
     non_empty_folder = 11,
@@ -42,11 +43,36 @@ struct range {
         How many sectors ahead belongs to this (logical) piece*/
 };
 
+template <typename returned_t>
+struct error_or {
+    u8 got_error : 1;
+    union {
+        exit_code error_descriptor;
+        returned_t value;
+    };
+
+    error_or(const returned_t v) : got_error(0), value(v) {}
+    error_or(const exit_code e) : got_error(1), error_descriptor(e) {}
+
+    /*
+     * Interface:
+     * auto res = some_function(arg);
+     * if (! res.error_occured()) {
+     *      ... go ahead
+     * } else {
+     *      ... handle errors
+     * }
+     */
+
+    // prevent declaration of error_or<exit_code>
+    static_assert(! __is_same(returned_t, exit_code));
+};
+
 struct low_level_interface {
-    int (*read_blocks)(char* ready_buffer, sector_no source, const size_t);
+    int (*read_blocks)(void* ready_buffer, sector_no source, const size_t);
     /**<  */
 
-    int (*write_blocks)(const char* source, sector_no destination,
+    int (*write_blocks)(const void* source, sector_no destination,
                         const size_t);
     /**< */
 

@@ -7,11 +7,11 @@ namespace quarkie {
 u32 hash(const void* data, const u16 size) {
     if (! data) return 0;
 
-    u64 res = 5381;
+    u32 res = 5381;
     auto arr = reinterpret_cast<const u8*>(data);
 
     for (u16 i = 0; i < size; ++i) {
-        u64 k = 0x5ce3a36faa;
+        u32 k = 0x5c3a36fa;
         for (uint shift = 0; shift < 4; ++shift) {
             k ^= (i & (0b11 << (shift * 4))) << (shift * 16);
         }
@@ -19,7 +19,7 @@ u32 hash(const void* data, const u16 size) {
         res *= arr[i] * (i + 52);
     }
 
-    return 0xff51afd7ed558ccdull * res;
+    return 0x1afd58cdull * res;
 }
 
 u64 hash_string(const char* str) {

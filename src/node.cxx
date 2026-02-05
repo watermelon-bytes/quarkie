@@ -56,5 +56,5 @@ error_or<disk_address> directory_node_t::lookup(const u32 hashed_target) {
     return error_or<disk_address>(exit_code::no_such_file_or_directory);
 }
 
-}  // namespace quarkie
+} // namespace quarkie
 #endif

@@ -17,12 +17,10 @@ struct directory_item {
 struct directory_node_t {
     // sector_no next;
     constexpr static uint max_name_len = 64, items_capacity = 18;
-
-    u16 count;
     range full_names_infosectors;
     pool<directory_item, items_capacity> items;
 
-    directory_node_t() : count(0) {}
+    directory_node_t() {}
     /*
      * @brief Looks for hashed_target among the directory items.
      * @return
@@ -43,6 +41,6 @@ struct directory_content {
     pool<char[directory_node_t::max_name_len], capacity> names;
 };
 
-}  // namespace quarkie
+} // namespace quarkie
 //
 #endif

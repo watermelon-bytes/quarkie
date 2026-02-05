@@ -1,24 +1,30 @@
 #ifndef PARSER_CPP
 #define PARSER_CPP
-#include "file.hxx"
+#include "common_api.hxx"
+#include "quarkie_defs.hxx"
+#include <numbers>
 #define DEBUG
+#include <hash_table/hash.h>
+
+#include <inode_struct/node.hxx>
 #include <parser.hxx>
 #include <superblock.hxx>
 
-using string_utils::word;
-
-namespace string_utils {
+namespace quarkie::string_utils {
 
 constexpr auto no_word = word {nullptr, 0};
 
 word take_word(const char* str) {
     word output;
-    while (*str == separator || *str == ' ') str++;
+    while (*str == separator || *str == ' ')
+        str++;
 
-    if (! *str) return no_word;
+    if (! *str)
+        return no_word;
     output.pointer = str;
 
-    while (*str != separator && *str != '\0' && *str != ' ') str++;
+    while (*str != separator && *str != '\0' && *str != ' ')
+        str++;
 
     output.size = str - output.pointer;
     return output;
@@ -26,24 +32,29 @@ word take_word(const char* str) {
 
 static inline uint strlen(const char* str) {
     auto* const start_str = str;
-    while (*str++);
+    while (*str++)
+        ;
     return str - start_str;
 }
 
 word take_filename(const char* str) {
-    if (! is_valid_path(str)) return no_word;
+    if (! is_valid_path(str))
+        return no_word;
     str += strlen(str) - 1;
 
-    while (*str == separator || *str == ' ') str--;
+    while (*str == separator || *str == ' ')
+        str--;
     const auto end_of_filename = str;
 
-    while (*(str - 1) != separator) --str;
+    while (*(str - 1) != separator)
+        --str;
 
     return word {str, (ushort) (end_of_filename - str + 1)};
 }
 
 word take_directory(const char* path) {
-    if (! is_valid_path(path)) return no_word;
+    if (! is_valid_path(path))
+        return no_word;
     auto* const begin = path;
     // `take_filename` checks for pointer validness
     auto* const end = take_filename(path).pointer - 1;
@@ -131,6 +142,39 @@ bool is_valid_path(const char* request) {
     return 52;
 }
 
-};  // namespace string_utils
+error_or<disk_address> find_file(const char* path) {
+    node metadata_buffer;
+    disk_address curr_target_address = sb.root_node;
+    const word target_directory = take_directory(path),
+               target_filename = take_filename(path);
+    word curr_iter_target;
+    do {
+        curr_iter_target = take_word(path);
+        path += curr_iter_target.size; // Shift the string pointer
+        u32 hash_of_curr_target =
+            hash(&curr_iter_target.pointer, curr_iter_target.size);
+        external_interface.read_blocks(&metadata_buffer,
+                                       curr_target_address.block, sizeof(node));
+        if (not metadata_buffer.check_signature()) {
+            return err<disk_address>(exit_code::wrong_signature);
+        }
+        // Checking just in case
+        else if (not metadata_buffer.is_directory) {
+            return err<disk_address>(exit_code::no_such_file_or_directory);
+        }
 
-#endif  // !PARSER_H
+        auto res = metadata_buffer.dir.lookup(hash_of_curr_target);
+        if (res.got_error) {
+            return err<disk_address>(res.error_descriptor);
+        } else if (not res.value.dir) {
+            return err<disk_address>(exit_code::not_a_directory);
+        }
+    } while (curr_iter_target.pointer != target_directory.pointer);
+    // After we found the target directory, we look for the file finally
+    return metadata_buffer.dir.lookup(
+        hash(target_filename.pointer, target_filename.size));
+}
+
+}; // namespace quarkie::string_utils
+
+#endif // !PARSER_H

@@ -16,10 +16,10 @@ struct file_node_t {
         } meta;
         char small_file[235];
     };
-    exit_code cleanup_file_space();  // #auxilary for: remove_child
+    exit_code cleanup_file_space(); // #auxilary for: remove_child
 };
 
-struct node {
+struct alignas(256) node {
     static constexpr u16 valid_signature = 0x7CAE;
     u16 signature = valid_signature;
     i32 id; /* speed up searching*/
@@ -44,7 +44,7 @@ struct node {
 
     // By accepting a pointer to node*, we assume that the data is already
     // loaded into RAM
-    exit_code add_child(node*);  // approximately: this->eldest_child = node;
+    exit_code add_child(node*); // approximately: this->eldest_child = node;
     exit_code change_parent(node*);
 
     exit_code remove_child(const u32, bool);
@@ -59,10 +59,10 @@ struct node {
      */
     bool check_signature() const { return valid_signature == this->signature; }
     exit_code init(disk_address parent, bool directory = false);
-    node() {}  // Constructors are EVIL
+    node() {} // Constructors are EVIL
 };
 static_assert(sizeof(node) <= 256, "Size of `node` greater than 256.");
 
-}  // namespace quarkie
+} // namespace quarkie
 
 #endif

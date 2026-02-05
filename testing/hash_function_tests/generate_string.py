@@ -6,12 +6,10 @@ def random_safe_string(length: int) -> str:
     return "".join(random.choice(safe) for _ in range(length))
 
 patterns = []
-    
-for _ in range(1400):
-    length = random.randint(130, 250)
-    patterns.append((f"long_rand_{length}", random_safe_string(length)))
+count = int(input("Enter a number"))
+file_name = "test_data.h" # Need to write to this file
 
-for _ in range(145000):
+for _ in range(count):
     length = random.randint(0, 128)
     patterns.append((f"very_long_{length}", random_safe_string(length)))
 
@@ -23,3 +21,4 @@ for name, s in patterns:
     print(f'    {{"{escaped}", {len(s)}, "{name}"}},')
 
 print("};\n#endif")
+print("All datasets were written to {}")

@@ -24,7 +24,7 @@ enum class exit_code : int8_t {
 enum class modes : uint8_t {
     read = 1 << 0,
     write = 1 << 1,
-    move = 1 << 2,  // Also allows to delete units
+    move = 1 << 2, // Also allows to delete units
     link = 1 << 3,
 };
 
@@ -43,8 +43,7 @@ struct range {
         How many sectors ahead belongs to this (logical) piece*/
 };
 
-template <typename returned_t>
-struct error_or {
+template <typename returned_t> struct error_or {
     u8 got_error : 1;
     union {
         exit_code error_descriptor;
@@ -52,11 +51,17 @@ struct error_or {
     };
 
     error_or(const returned_t v) : got_error(0), value(v) {}
-    error_or(const exit_code e) : got_error(1), error_descriptor(e) {}
-
+    constexpr error_or(const exit_code e) : got_error(1), error_descriptor(e) {}
     // prevent declaration of error_or<exit_code>
     static_assert(! __is_same(returned_t, exit_code));
 };
+constexpr auto success(const auto val) {
+    return error_or<decltype(val)> {.got_error = 0, .value = val};
+}
+
+template <typename t> constexpr error_or<t> err(const exit_code e) {
+    return error_or<t>(e);
+}
 
 struct low_level_interface {
     int (*read_blocks)(void* ready_buffer, sector_no source, const size_t);
@@ -126,7 +131,7 @@ class file_entry;
 static quarkie::file_entry* search_openfiles_table(const int fd);
 
 #ifdef __cplusplus
-}  // extern "C"
+} // extern "C"
 #endif
-}  // namespace quarkie
+} // namespace quarkie
 #endif

@@ -1,6 +1,8 @@
 #ifndef STRING_UTILS_HXX
 #define STRING_UTILS_HXX
 
+#include "common_api.hxx"
+#include <locale>
 #include <quarkie_defs.hxx>
 
 namespace quarkie {
@@ -46,7 +48,7 @@ word take_directory(const char* path);
  * returned if no such file)
  * @param path Absolute path from superblock::root to the target.
  */
-quarkie::disk_address find_file(const char* path);
+error_or<disk_address> find_file(const char* path);
 
 /*
  * @brief
@@ -62,6 +64,6 @@ bool is_valid_filename(const char* req);
 
 bool is_valid_path(const char* path);
 
-}  // namespace string_utils
-}  // namespace quarkie
+} // namespace string_utils
+} // namespace quarkie
 #endif

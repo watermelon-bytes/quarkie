@@ -24,13 +24,14 @@ class node;
 
 struct disk_address {
     sector_no block;
-    u16 offset : 13;  // Assuming that block isnt larger than 4KB
+    u16 offset : 13; // Assuming that block isnt larger than 4KB
+    u16 dir : 1;     // Used only in directory items
 };
 
 struct div_t;
 
 constexpr uint sector_size = 512;
 
-}  // namespace quarkie
+} // namespace quarkie
 
 #endif

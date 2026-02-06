@@ -1,7 +1,8 @@
 Language: Cpp
-BasedOnStyle: google
+BasedOnStyle: LLVM
 IndentWidth: 4
 
+Standard: c++20
 AccessModifierOffset: -4
 PointerAlignment: Left 
 

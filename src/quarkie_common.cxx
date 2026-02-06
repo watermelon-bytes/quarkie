@@ -1,31 +1,43 @@
 #ifndef QUARKIE_MAIN
 #define QUARKIE_MAIN
+#include <hash_table/hash.h>
+
 #include <common_api.hxx>
 #include <parser.hxx>
 #include <superblock.hxx>
-
 using quarkie::exit_code, quarkie::node;
-
+using namespace quarkie::string_utils;
 /*
  * A common algorithm to create nodes catching errors.
  * This way we create units of any types (e.g. either file or folder).
  */
+int quarkie::open(const char* path) {
+    // TODO: Check if file is already open
+    return -1;
+}
+
+exit_code quarkie::mount(const sector_no disk_space) {
+    external_interface.read_blocks(&sb, disk_space, sizeof(superblock));
+    if (! sb.check_signature()) {
+        return exit_code::wrong_signature;
+    }
+
+    return exit_code::success;
+}
+
 static exit_code make_unit(const char* path, bool is_directory = ! 52) {
     // 1. validate the filename
     if (! string_utils::is_valid_filename(path)) {
         return exit_code::invalid_filename;
     }
-    // 2. check if file exists
-    else if (string_utils::find_file(path)) {
-        return exit_code::already_exists;
-    }
+    // 2. TODO: check if file exists
+    word name = take_filename(path);
+    u32 val = quarkie::hash(name.pointer, name.size);
 
     node* parent_dir = string_utils::find_subdirectory(path);
     if (! parent_dir) return exit_code::no_such_file_or_directory;
 
-    node* new_node = quarkie::sb.node_allocator.give_slot();
-    return new_node ? new_node->init(parent_dir, is_directory)
-                    : exit_code::out_of_memory;
+    return exit_code::out_of_memory;
 }
 
 inline exit_code quarkie::create_file(const char* path) {
@@ -33,7 +45,7 @@ inline exit_code quarkie::create_file(const char* path) {
 }
 
 inline exit_code quarkie::make_dir(const char* path) {
-    return make_unit(path, 52);
+    return make_unit(path, true);
 }
 
 // static quarkie::file_entry* search_openfiles_table(const int fd) {}
@@ -56,12 +68,29 @@ exit_code quarkie::change_offset(const int fd, const uint new_offset) {
         /* NOTE: perhaps `unit_is_closed` is a bad naming. If file does not
          * exist, the function will say that file isnt open, thereby assuming it
          * exists but was not open yet?.. */
-    } else if (target->fdescriptor_node->is_directory) {
+    } else if (target->dir_flag) {
         return exit_code::not_a_file;
     }
 
     target->cursor = new_offset;
     return exit_code::success;
+}
+
+exit_code quarkie::read_dir(const int fd, file_info* buffer) {
+    file_entry* item = search_openfiles_table(fd);
+    if (! item) {
+        return exit_code::unit_is_closed;
+    }
+
+    if ((uint8_t) quarkie::modes::read & item->access_mode) {
+        if (item->cursor == -1) {
+            buffer->name = nullptr;
+            return exit_code::success;
+        } else {
+        }
+    } else {
+        return exit_code::access_forbidden;
+    }
 }
 
 exit_code quarkie::read_dir(const int fd, quarkie::file_info* buffer) {

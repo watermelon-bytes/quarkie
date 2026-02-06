@@ -50,7 +50,7 @@ template <typename returned_t> struct error_or {
         returned_t value;
     };
 
-    error_or(const returned_t v) : got_error(0), value(v) {}
+    constexpr error_or(const returned_t v) : got_error(0), value(v) {}
     constexpr error_or(const exit_code e) : got_error(1), error_descriptor(e) {}
     // prevent declaration of error_or<exit_code>
     static_assert(! __is_same(returned_t, exit_code));
@@ -59,7 +59,7 @@ constexpr auto success(const auto val) {
     return error_or<decltype(val)> {.got_error = 0, .value = val};
 }
 
-template <typename t> constexpr error_or<t> err(const exit_code e) {
+template <typename t> constexpr auto err(const exit_code e) {
     return error_or<t>(e);
 }
 

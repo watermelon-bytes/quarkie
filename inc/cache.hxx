@@ -1,17 +1,11 @@
 #ifndef QUARKIE_CACHE_HXX
 #define QUARKIE_CACHE_HXX
-
-#include <bitmap/basic_bitmap.hxx>
-#include <common_api.hxx>
-#include <cstdint>
 #include <free_space_tracker.hxx>
-
-#include "bitmap/bitmap.hxx"
 
 namespace quarkie {
 
 struct raw_sector {
-    uint8_t bytes[free_space::sector_size];
+    uint8_t bytes[sector_size];
 };
 
 constexpr uint cache_size = 12;

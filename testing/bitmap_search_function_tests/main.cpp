@@ -1,10 +1,8 @@
-
+#define DEBUG 1
 #include <hash_table/hash.h>
 
 #include <cassert>
 #include <inode_struct/directory_node.hxx>
-
-#include "common_api.hxx"
 
 int main() {
     quarkie::low_level_interface my_interface;

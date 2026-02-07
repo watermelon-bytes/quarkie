@@ -1,5 +1,7 @@
 #ifndef SUPERBLOCK_HXX
 #define SUPERBLOCK_HXX
+#include "hash_table/hash.h"
+#include "inode_struct/directory_node.hxx"
 #include <common_api.hxx>
 #include <free_space_tracker.hxx>
 
@@ -40,12 +42,23 @@ struct superblock {
 
 // Used to describe currently open files
 struct file_entry {
-    node* fdescriptor_node;
+    static inline uint counter = 0;
+
+    u32 filename_hash;
+    u16 index;
+    char full_name[directory_node_t::max_name_len];
+
     u8 access_mode : 7;
     u8 dir_flag : 1;
-    uint cursor;
-};
 
+    uint cursor;
+
+    file_entry(u8 flags, bool dir, const char* name)
+        : cursor(0), dir_flag(dir), index(++counter) {
+        __builtin_strcpy(full_name, name);
+        filename_hash = hash_string(full_name);
+    }
+};
 constexpr uint max_open_files = 50;
 extern quarkie::pool<file_entry, max_open_files> open_files_table;
 extern low_level_interface
@@ -54,6 +67,6 @@ extern low_level_interface
 
 extern superblock sb;
 
-}  // namespace quarkie
+} // namespace quarkie
 
 #endif

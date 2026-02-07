@@ -57,7 +57,9 @@ struct alignas(256) node {
      * should be used to validate raw sectors. Takes a few cycles but ensures
      * the correctness. (Maybe we should extend signature size to 64 bits?)
      */
-    bool check_signature() const { return valid_signature == this->signature; }
+    bool has_valid_signature() const {
+        return valid_signature == this->signature;
+    }
     exit_code init(disk_address parent, bool directory = false);
     node() {} // Constructors are EVIL
 };

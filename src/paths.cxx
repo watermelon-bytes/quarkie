@@ -1,9 +1,5 @@
 #ifndef PARSER_CPP
 #define PARSER_CPP
-#include "common_api.hxx"
-#include "quarkie_defs.hxx"
-#include <numbers>
-#define DEBUG
 #include <hash_table/hash.h>
 
 #include <inode_struct/node.hxx>
@@ -69,9 +65,6 @@ word take_directory(const char* path) {
     }
 
     while (*path != separator && path > begin) {
-#ifdef DEBUG
-        cout << "[INSIDE LOOP]\n";
-#endif
         path--;
     }
 #ifdef DEBUG
@@ -151,30 +144,32 @@ error_or<disk_address> find_file(const char* path) {
     do {
         curr_iter_target = take_word(path);
         path += curr_iter_target.size; // Shift the string pointer
+
         u32 hash_of_curr_target =
             hash(&curr_iter_target.pointer, curr_iter_target.size);
         external_interface.read_blocks(&metadata_buffer,
                                        curr_target_address.block, sizeof(node));
-        if (not metadata_buffer.check_signature()) {
-            return err<disk_address>(exit_code::wrong_signature);
+        if (not metadata_buffer.has_valid_signature()) {
+            return err<disk_address>(exit_code::bad_sign);
         }
-        // Checking just in case
+        // Checking just in case (remove later)
         else if (not metadata_buffer.is_directory) {
-            return err<disk_address>(exit_code::no_such_file_or_directory);
+            return err<disk_address>(exit_code::not_found);
         }
 
         auto res = metadata_buffer.dir.lookup(hash_of_curr_target);
         if (res.got_error) {
             return err<disk_address>(res.error_descriptor);
         } else if (not res.value.dir) {
-            return err<disk_address>(exit_code::not_a_directory);
+            return err<disk_address>(exit_code::not_directory);
         }
+
     } while (curr_iter_target.pointer != target_directory.pointer);
     // After we found the target directory, we look for the file finally
     return metadata_buffer.dir.lookup(
         hash(target_filename.pointer, target_filename.size));
 }
 
-}; // namespace quarkie::string_utils
+} // namespace quarkie::string_utils
 
 #endif // !PARSER_H

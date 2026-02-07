@@ -1,5 +1,7 @@
 #ifndef NODE_CPP
 #define NODE_CPP
+#include "common_api.hxx"
+#include "quarkie_defs.hxx"
 #include <sys/types.h>
 
 #include <climits>
@@ -32,18 +34,18 @@ error_or<disk_address> directory_node_t::lookup(const u32 hashed_target) {
         uint offset = 0;
         __builtin_memcpy(&chunk, &items.allocator_.map[i], sizeof(chunk));
         while (chunk != 0) {
-            uint leading_zeroes_count = __builtin_clz(chunk);
-            chunk <<= leading_zeroes_count;
+            int leading_zeroes_count = __builtin_clz(chunk);
+            chunk <<= (uint) leading_zeroes_count;
             offset += leading_zeroes_count;
             if (zeroes_turn) {
                 // now we use leading_zeroes_count as loop counter
                 // because theres too many variables, so to avoid using stack
                 // and keeping all local variables in registers, we shouldn't
                 // add more counters just for beauty
-                while (leading_zeroes_count > 0) {
+                while (leading_zeroes_count >= 0) {
                     uint const index = i + offset - leading_zeroes_count;
                     if (hashed_target == items.base[index].hashed) {
-                        return error_or(items.base[index].pointer);
+                        return items.base[index].pointer;
                     }
                     leading_zeroes_count--;
                 }
@@ -53,7 +55,7 @@ error_or<disk_address> directory_node_t::lookup(const u32 hashed_target) {
         }
     }
 
-    return error_or<disk_address>(exit_code::no_such_file_or_directory);
+    return exit_code::not_found;
 }
 
 } // namespace quarkie

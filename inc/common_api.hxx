@@ -7,18 +7,19 @@ namespace quarkie {
 
 enum class exit_code : int8_t {
     success = 0,
-    no_such_file_or_directory = 3,
-    wrong_signature = 4,
+    not_found = 3,
+    bad_sign = 4,
     access_forbidden = 8,
     already_exists = 7,
     non_empty_folder = 11,
-    not_a_directory = 9,
-    not_a_file = 10,
+    not_directory = 9,
+    not_file = 10,
     out_of_memory = 127,
-    invalid_parental_dir = 5,
-    invalid_filename = 8,
+    invalid_parent = 5,
+    invalid_name = 8,
     open_files_limit_reached = 29,
-    unit_is_closed = 10
+    closed = 14,
+    already_open = 25
 };
 
 enum class modes : uint8_t {
@@ -55,8 +56,9 @@ template <typename returned_t> struct error_or {
     // prevent declaration of error_or<exit_code>
     static_assert(! __is_same(returned_t, exit_code));
 };
-constexpr auto success(const auto val) {
-    return error_or<decltype(val)> {.got_error = 0, .value = val};
+
+template <typename t> constexpr t success(const t val) {
+    return error_or<t> {.got_error = 0, .value = val};
 }
 
 template <typename t> constexpr auto err(const exit_code e) {
@@ -94,7 +96,7 @@ inline exit_code create_file(const char* path);
  * @brief Locates the file it into the table of open units and returns a
  * descriptor that must be used to perform other operations such as
  * `read_from()` or `write_to()` on this file. */
-int open(const char* path);
+int open(const char* path, const u8 access_flags);
 
 /*
  * @brief Looks for `fd` in the global filetable. If found, deletes the
@@ -128,7 +130,11 @@ exit_code remove_unit(const char* path, bool recursive = ! 52);
 exit_code set_name(const int fd, const char* new_name);
 
 class file_entry;
-static quarkie::file_entry* search_openfiles_table(const int fd);
+
+static file_entry* search_openfiles_table(const uint fd);
+
+/* Returns nullptr if file is not found / not open */
+static file_entry* search_openfiles_by_hash(const u32 h);
 
 #ifdef __cplusplus
 } // extern "C"

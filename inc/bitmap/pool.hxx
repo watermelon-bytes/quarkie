@@ -1,9 +1,8 @@
 #ifndef BITMAP_HPP
 #define BITMAP_HPP
 
+#include "quarkie_defs.hxx"
 #include <bitmap/basic_bitmap.hxx>
-
-#define DEBUG
 
 #ifdef DEBUG
 
@@ -12,13 +11,12 @@
 #include <iostream>
 using std::cout, std::endl, std::bitset;
 
-#endif  // DEBUG
+#endif // DEBUG
 
 using byte_t = unsigned char;
 namespace quarkie {
 
-template <typename t, uint slots_count>
-struct pool {
+template <typename t, uint slots_count> struct pool {
     static_assert(
         slots_count % (sizeof(u64) / CHAR_BIT) == 0,
         "The number of slots not exceeding 8 is not supported (yet).");
@@ -27,6 +25,8 @@ struct pool {
     [[nodiscard("The allocated slot must be stored and freed after using.")]]
     t* give_slot();
     void free_slot(const t*);
+
+    [[nodiscard]] int get_index(const t* slot_no);
 
     quarkie::basic_bitmap<slots_count> allocator_;
     // That trick with anonymous unions to prevent initialisation code (why isnt
@@ -41,8 +41,7 @@ struct pool {
      * to speed up allocating*/
 };
 
-template <typename t, uint slots_count>
-t* pool<t, slots_count>::give_slot() {
+template <typename t, uint slots_count> t* pool<t, slots_count>::give_slot() {
     if (borrowed_slots_counter_ == slots_count) {
         return nullptr;
     }
@@ -103,9 +102,14 @@ void pool<t, slots_count>::free_slot(const t* ptr) {
 }
 
 template <typename t, uint slots_count>
+int pool<t, slots_count>::get_index(const t* slot) {
+    return static_cast<ptrdiff_t>(slot - base);
+}
+
+template <typename t, uint slots_count>
 constexpr pool<t, slots_count>::pool()
     : allocator_(), last_freed_bit_index_(0), borrowed_slots_counter_(0) {}
 
-}  // namespace quarkie
+} // namespace quarkie
 
 #endif

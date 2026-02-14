@@ -101,7 +101,7 @@ bool strict_collision_check() {
 
     return ! has_collision;
 }
-}  // namespace tests
+} // namespace tests
 
 int main() {
     std::cout << "\nStrict collision check...\n";

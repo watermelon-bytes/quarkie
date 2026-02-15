@@ -5,21 +5,25 @@
 
 namespace quarkie {
 
-u32 hash(const void* data, const u16 size) {
-    div_t actual_size = div(size, 4);
-    if (! data || actual_size.rem % 4)
+u32 hash(const void* data, const u16 length) {
+    if (! data)
         return 0;
+    auto [size, excess] = div(length, 4);
 
     u32 res = 5381;
     auto arr = reinterpret_cast<const u32*>(data);
 
-    for (u16 i = 0; i < actual_size.quot; ++i) {
-        u32 k = 0x5c3a36fa;
-        k ^= arr[i];
-        res += k * i;
+    const u32 k = 0x5C3A36FA;
+    for (u16 i = 0; i < size; ++i) {
+        res += (i + 1) * (k ^ arr[i]);
     }
 
-    return 0x1afd58cdull * res;
+    if (excess) {
+        u32 x {0};
+        __builtin_memcpy(&x, &arr[size], excess);
+        res += (k ^ x) * (size + 1);
+    }
+    return 0x1AFD58CDull * res;
 }
 
 u64 hash_string(const char* str) {
